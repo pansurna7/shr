@@ -1,0 +1,25 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class Authenticate
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     */
+    protected function redirectTo(Request $request): ?string
+    {
+        if ($request->expectsJson()) {
+            return null;
+        }
+
+        // GANTI DARI route('login') MENJADI PATH YANG DIINGINKAN (/)
+        return route('login');
+    }
+}
