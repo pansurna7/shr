@@ -92,24 +92,24 @@
 
         });
         document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.delete-button').forEach(button => {
-            button.addEventListener('click', function () {
-                const itemId = this.dataset.id;
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "You won't to deleted this!",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#3085d6',
-                    confirmButtonText: 'Yes, delete it!'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        document.getElementById(`delete-form-${itemId}`).submit();
-                    }
+            document.querySelectorAll('.delete-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const itemId = this.dataset.id;
+                    Swal.fire({
+                        title: 'Are you sure?',
+                        text: "You won't to deleted this!",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#d33',
+                        cancelButtonColor: '#3085d6',
+                        confirmButtonText: 'Yes, delete it!'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            document.getElementById(`delete-form-${itemId}`).submit();
+                        }
+                    });
                 });
             });
         });
-    });
     </script>
 @endpush

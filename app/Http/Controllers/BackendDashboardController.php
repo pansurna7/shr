@@ -1,13 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\FrontEnd;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
-class DashboardController extends Controller
+class BackendDashboardController extends Controller
 {
     public function index()
     {
@@ -15,30 +14,21 @@ class DashboardController extends Controller
         $month= date("m")*1;
         $year = date("Y");
 
-        $nik = Auth::user()->nik;
+        $employee = User::where('status',1)->count();
 
-        $presensi_today= DB::table('presences')->where('nik',$nik)->where('date',$today)->first();
-        // dd($presensi_today);
         $history_on_mount = DB::table('presences')
-            ->where('nik',$nik)
             ->whereRaw("MONTH(date)='$month'")
             ->whereRaw("YEAR(date)='$year'")
             ->orderBy('date')
             ->get();
-        
+
         $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
 
         $rekap_presensi= DB::table('presences')
             ->selectRaw("COUNT(nik) as jml_hadir,SUM(IIF(time_in > '07:00:00', 1, 0)) AS jml_telat")
-            ->where('nik',$nik)
-            ->whereRaw("MONTH(date)='$month'")
-            ->whereRaw("YEAR(date)='$year'")
+            ->whereRaw("'date'='$today'")
             ->first();
 
-        $leader_board=DB::table('presences')
-            -> join("users", "presences.nik","=","users.nik")
-            ->where('date',$today)
-            ->get();
 
         // untuk mysql server
         // $rekap_izin = DB::table('submissions')
@@ -60,20 +50,17 @@ class DashboardController extends Controller
                 SUM(CASE WHEN [condition] = 0 THEN 1 ELSE 0 END) as jml_izin,
                 SUM(CASE WHEN [condition] IN (1, 2) THEN 1 ELSE 0 END) as jml_sakit
             ")
-            ->where('nik', $nik)
-            ->whereRaw("MONTH([date]) = ?", [$month])
-            ->whereRaw("YEAR([date]) = ?", [$year])
+            ->whereRaw("([date]) = ?", [$today])
             ->where('status', 1)
             ->first();
         // dd($rekap_izin);
-        return view('frontend.index',compact(
-                                            'presensi_today',
+        return view('backend.dashboard',compact(
+                                            'employee',
                                             'history_on_mount',
                                             'nama_bulan',
                                             'month',
                                             'year',
                                             'rekap_presensi',
-                                            'leader_board',
                                             'rekap_izin'
                                             )
                                         );

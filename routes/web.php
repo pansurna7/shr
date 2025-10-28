@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\BackendDashboardController;
 use App\Http\Controllers\BuilderControler;
+use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\FrontEnd\DashboardController;
 use App\Http\Controllers\FrontEnd\PresensiController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\permissionController;
+use App\Http\Controllers\PositionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SettingController;
@@ -24,6 +27,8 @@ Route::get('dashboards', function () {
 
 
 Route::middleware('auth')->group(function () {
+    route::get('/dashboards',[BackendDashboardController::class,'index'])->name('dashboards');
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::post('/profile/{id}', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -83,6 +88,31 @@ Route::group(['as' => 'menus.', 'prefix' => 'menus/{id}'], function(){
     Route::post('/item/delete/{itemId}',[BuilderControler::class,'itemDelete'])->name('item.delete');
 });
 
+// employee
+
+Route::middleware(['auth','can:departements.permission'])->group(function () {
+    Route::get('/departements',[DepartementController::class,'index'])->name('departement.index');
+    // Route::get('/departement/create',[DepartementController::class,'create'])->name('departement.create');
+    Route::post('/departement/store',[DepartementController::class,'store'])->name('departement.store');
+    Route::post('/departement/edit',[DepartementController::class,'edit'])->name('departement.edit');
+    Route::put('/departement/update/{id}',[DepartementController::class,'update'])->name('departement.update');
+    Route::post('/departement/delete/{id}',[DepartementController::class,'delete'])->name('departement.delete');
+});
+
+Route::middleware(['auth','can:positions.permission'])->group(function () {
+    Route::get('/positions',[PositionController::class,'index'])->name('position.index');
+    // Route::get('/position/create',[PositionController::class,'create'])->name('position.create');
+    Route::post('/position/store',[PositionController::class,'store'])->name('position.store');
+    Route::post('/position/edit',[PositionController::class,'edit'])->name('position.edit');
+    Route::put('/position/update/{id}',[PositionController::class,'update'])->name('position.update');
+    Route::post('/position/delete/{id}',[PositionController::class,'delete'])->name('position.delete');
+});
+
+
+
+
+
+
 
 // FrontEnd Presensi
 Route::get('/frontend/dashboards', function () {
@@ -107,5 +137,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('presensi/pengajuan',[PresensiController::class,'pengajuan'])->name('presensi.pengajuan');
     Route::post('/presensi/storeizin',[PresensiController::class,'storeizin'])->name('store.izin');
 });
+
+
+
+
 
 require __DIR__.'/auth.php';

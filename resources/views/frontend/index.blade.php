@@ -196,7 +196,7 @@
                                     <div class="in">
                                         <div>{{ date("d-m-Y",strtotime($item->date)) }}</div>
                                         <span class="badge badge-success">{{date("H:i:s",strtotime($item->time_in))}}</span>
-                                        <span class="badge badge-danger">{{$presensi_today != null && $presensi_today->time_out != null ? date("H:i:s",strtotime($item->time_out)):"Belum Absen"}}</span>
+                                        <span class="badge badge-danger">{{$item->time_out != Null ? \Carbon\carbon::parse($item->time_out)->format('H:i:s') : 'Belum Absen'}}</span>
                                     </div>
 
                                 </div>

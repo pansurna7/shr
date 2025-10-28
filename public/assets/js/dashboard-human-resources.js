@@ -111,7 +111,7 @@ $(function() {
 
 
 // chart 2
-    
+
     var options = {
             chart: {
                 height: 340,
@@ -181,21 +181,21 @@ $(function() {
             colors: ["#fff", "rgba(255, 255, 255, 0.50)", "rgba(255, 255, 255, 0.25)", "rgba(255, 255, 255, 0.12)"],
             series: [90, 80, 70, 60],
             labels: ['Career Page', 'Referral', 'Agency', 'Job Boards']
-            
+
         }
 
        var chart = new ApexCharts(
             document.querySelector("#application-by-source"),
             options
         );
-        
+
         chart.render();
 
 
 
 
 // chart 3
-  
+
   var options = {
             chart: {
                 width: 150,
@@ -270,14 +270,14 @@ $(function() {
             colors: ["#fff"],
             series: [64],
             labels: ['Screening Calls'],
-            
+
         }
 
        var chart = new ApexCharts(
             document.querySelector("#screening-calls"),
             options
         );
-        
+
         chart.render();
 
 
@@ -285,7 +285,7 @@ $(function() {
 
 
 // chart 4
-  
+
   var options = {
             chart: {
                 width: 150,
@@ -360,21 +360,21 @@ $(function() {
             colors: ["#fff"],
             series: [76],
             labels: ['Assignments'],
-            
+
         }
 
        var chart = new ApexCharts(
             document.querySelector("#assignments"),
             options
         );
-        
+
         chart.render();
 
 
 
 
 // chart 5
-  
+
   var options = {
             chart: {
                 width: 150,
@@ -449,21 +449,21 @@ $(function() {
             colors: ["#fff"],
             series: [83],
             labels: ['interviews'],
-            
+
         }
 
        var chart = new ApexCharts(
             document.querySelector("#interviews"),
             options
         );
-        
+
         chart.render();
 
 
 
 
 // chart 6
-   
+
    var options = {
       chart: {
         height: 325,
@@ -654,7 +654,7 @@ var options = {
             document.querySelector("#top-referrers"),
             options
         );
-        
+
         chart.render();
 
 
@@ -690,7 +690,7 @@ var options1 = {
         data: [25, 66, 41, 59, 25, 44, 12, 36, 9, 21]
       }],
       stroke: {
-              width: 2.5, 
+              width: 2.5,
               curve: 'smooth',
               dashArray: [0]
          },
@@ -738,7 +738,54 @@ var options1 = {
         data: [12, 14, 2, 47, 32, 44, 14, 55, 41, 69]
       }],
       stroke: {
-                width: 2.5, 
+                width: 2.5,
+                curve: 'smooth',
+                dashArray: [0]
+         },
+      tooltip: {
+              theme: 'dark',
+              x: {
+                  show: false
+              },
+
+          }
+    }
+    new ApexCharts(document.querySelector("#emp-late"), options1).render();
+
+
+
+    // chart 9
+
+    var options1 = {
+      chart: {
+        type: 'area',
+        height: 110,
+        sparkline: {
+          enabled: true
+        }
+      },
+      dataLabels: {
+          enabled: false
+      },
+      fill: {
+        type: 'gradient',
+          gradient: {
+              shade: 'light',
+              //gradientToColors: ['rgba(255, 255, 255, 0.12)'],
+              shadeIntensity: 1,
+              type: 'vertical',
+              opacityFrom: 0.7,
+              opacityTo: 0.1,
+              stops: [0, 100, 100, 100]
+          },
+      },
+      colors: ["#fff"],
+      series: [{
+        name: 'Training Expenses',
+        data: [12, 14, 2, 47, 32, 44, 14, 55, 41, 69]
+      }],
+      stroke: {
+                width: 2.5,
                 curve: 'smooth',
                 dashArray: [0]
          },
@@ -787,7 +834,7 @@ var options1 = {
         data: [47, 45, 74, 32, 56, 31, 44, 33, 45, 19]
       }],
       stroke: {
-                width: 2.5, 
+                width: 2.5,
                 curve: 'smooth',
                 dashArray: [0]
          },
@@ -833,10 +880,10 @@ var options1 = {
       colors: ["#fff"],
       series: [{
         name: 'Starter This Month',
-        data: [15, 75, 47, 65, 14, 32, 19, 54, 44, 61]
+        data: [20, 75, 47, 65, 14, 32, 19, 54, 44, 61]
       }],
       stroke: {
-                width: 2.5, 
+                width: 2.5,
                 curve: 'smooth',
                 dashArray: [0]
          },
@@ -886,10 +933,10 @@ var options1 = {
                 }
             },
             stroke: {
-                width: 0,   
+                width: 0,
                 curve: 'smooth',
             },
-            dataLabels: { 
+            dataLabels: {
                 enabled: false
             },
             series: [{
@@ -932,13 +979,13 @@ var options1 = {
             document.querySelector("#bounce-rate"),
             options
         );
-        
+
         chart.render();
 
 
 
     // chart 13
-    
+
 
     var options = {
             chart: {
@@ -996,11 +1043,11 @@ var options1 = {
             grid:{
                 show: true,
                 borderColor: 'rgba(255, 255, 255, 0.12)',
-            }, 
+            },
             fill: {
                 opacity: 1
             },
-            colors: ["#ffffff"], 
+            colors: ["#ffffff"],
             yaxis: {
                 axisBorder: {
                     show: false
@@ -1089,7 +1136,7 @@ var options = {
                 enabled: false
             },
             stroke: {
-                width: 2.5, 
+                width: 2.5,
                 curve: 'smooth'
             },
             series: [{
@@ -1102,7 +1149,7 @@ var options = {
 
             xaxis: {
                 type: 'month',
-                categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],                
+                categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep"],
             },
             yaxis: {
                 axisBorder: {
@@ -1163,7 +1210,7 @@ var options = {
                     },
                     legend: {
                         offsetX: -20,
-                        fontSize: "12px", 
+                        fontSize: "12px",
                     }
                 }
             }]
@@ -1174,7 +1221,7 @@ var options = {
             options
         );
 
-        chart.render();          
+        chart.render();
 
 
 
