@@ -32,4 +32,4 @@
             <strong>Profile</strong>
         </div>
     </a>
-    </div>
+</div>

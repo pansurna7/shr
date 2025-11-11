@@ -18,7 +18,6 @@ class UserSeeder extends Seeder
             'name' => 'Super Admin',
             'email' => 'admin@gmail.com',
             'password' => Hash::make('password'),
-            'nik' => '1111',
             'status' => 1,
             'avatar' =>"",
         ]);

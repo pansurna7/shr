@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('presences', function (Blueprint $table) {
             $table->id();
-            $table->string('nik');
+            $table->string('employee_id');
             $table->date('date');
             $table->time('time_in');
             $table->time('time_out');

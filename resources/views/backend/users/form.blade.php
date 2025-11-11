@@ -1,4 +1,3 @@
-
 @push('css')
     <style>
         .dropify-wrapper .dropify-message p{
@@ -40,7 +39,7 @@
                 @enderror
             </div>
         </div>
-        <div class="row mb-3">
+        {{-- <div class="row mb-3">
             <label for="nik" class="col-sm-3 col-form-label">NIK</label>
             <div class="col-sm-9">
                 <input type="text" class="form-control" id="nik" name="nik" placeholder="Enter NIK" value="{{ old('nik', $user->nik ?? '') }}">
@@ -48,7 +47,7 @@
                 <span class="text-danger">{{ $message }}</span>
                 @enderror
             </div>
-        </div>
+        </div> --}}
         <div class="row mb-3">
             <label for="password" class="col-sm-3 col-form-label">Password</label>
             <div class="col-sm-9">
@@ -92,7 +91,7 @@
             @enderror
         </div>
         <div class="form-check-mb-3 form-switch fs-5">
-            <input type="checkbox" class="form-check-input" id="checkStatus"  name="status"  {{$user?->status  ? 'checked' :''}}>
+            <input type="checkbox" class="form-check-input" id="checkStatus"  name="status"  {{$user?->status  ? 'checked' :''}} >
             <label for="checkStatus">status</label>
             @error('status')
                 <span class="text-danger">{{ $message }}</span>

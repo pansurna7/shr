@@ -15,31 +15,49 @@ class DashboardController extends Controller
         $month= date("m")*1;
         $year = date("Y");
 
-        $nik = Auth::user()->nik;
+        $id = Auth::user()->employee->id;
 
-        $presensi_today= DB::table('presences')->where('nik',$nik)->where('date',$today)->first();
-        // dd($presensi_today);
+        $presensi_today= DB::table('presences')->where('employee_id',$id)->where('date',$today)->first();
+        //  dd($presensi_today);
         $history_on_mount = DB::table('presences')
-            ->where('nik',$nik)
+            ->where('employee_id',$id)
             ->whereRaw("MONTH(date)='$month'")
             ->whereRaw("YEAR(date)='$year'")
             ->orderBy('date')
             ->get();
-        
+
         $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
 
         $rekap_presensi= DB::table('presences')
-            ->selectRaw("COUNT(nik) as jml_hadir,SUM(IIF(time_in > '07:00:00', 1, 0)) AS jml_telat")
-            ->where('nik',$nik)
+            ->selectRaw("COUNT(employee_id) as jml_hadir,SUM(IIF(time_in > '07:00:00', 1, 0)) AS jml_telat")
+            ->where('employee_id',$id)
             ->whereRaw("MONTH(date)='$month'")
             ->whereRaw("YEAR(date)='$year'")
             ->first();
 
-        $leader_board=DB::table('presences')
-            -> join("users", "presences.nik","=","users.nik")
-            ->where('date',$today)
-            ->get();
+        $leader_board = DB::table('presences')
+                        // JOIN ke tabel employees
+                        ->join('employees', 'presences.employee_id', '=', 'employees.id')
 
+                        // ✨ JOIN ke tabel positions (menggunakan foreign key di employees) ✨
+                        ->join('positions', 'employees.position_id', '=', 'positions.id')
+
+                        // Filter tanggal
+                        ->where('date', $today)
+
+                        // Pilih kolom yang diperlukan, termasuk nama posisi
+                        ->select(
+                            'presences.*', // Ambil semua kolom dari presences
+                            'employees.first_name', // Contoh kolom dari employees
+                            'employees.last_name',
+                            'avatar',
+
+                            // ✨ Ambil nama posisi dari tabel positions dan beri alias
+                            'positions.name AS position_name'
+                        )
+                        ->get();
+
+        // dd($leader_board);
         // untuk mysql server
         // $rekap_izin = DB::table('submissions')
         //     ->selectRaw("
@@ -60,7 +78,7 @@ class DashboardController extends Controller
                 SUM(CASE WHEN [condition] = 0 THEN 1 ELSE 0 END) as jml_izin,
                 SUM(CASE WHEN [condition] IN (1, 2) THEN 1 ELSE 0 END) as jml_sakit
             ")
-            ->where('nik', $nik)
+            ->where('employee_id', $id)
             ->whereRaw("MONTH([date]) = ?", [$month])
             ->whereRaw("YEAR([date]) = ?", [$year])
             ->where('status', 1)

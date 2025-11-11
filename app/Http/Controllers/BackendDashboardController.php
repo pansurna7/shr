@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use App\Models\Employee;
 
 class BackendDashboardController extends Controller
 {
@@ -14,7 +15,7 @@ class BackendDashboardController extends Controller
         $month= date("m")*1;
         $year = date("Y");
 
-        $employee = User::where('status',1)->count();
+        $employee = Employee::count();
 
         $history_on_mount = DB::table('presences')
             ->whereRaw("MONTH(date)='$month'")
@@ -22,11 +23,13 @@ class BackendDashboardController extends Controller
             ->orderBy('date')
             ->get();
 
+        //dd($history_on_mount);
+
         $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
 
         $rekap_presensi= DB::table('presences')
-            ->selectRaw("COUNT(nik) as jml_hadir,SUM(IIF(time_in > '07:00:00', 1, 0)) AS jml_telat")
-            ->whereRaw("'date'='$today'")
+            ->selectRaw("COUNT(employee_id) as jml_hadir, SUM(IIF(time_in > '07:00:00', 1, 0)) AS jml_telat")
+            ->whereRaw("date = ?", [$today])
             ->first();
 
 

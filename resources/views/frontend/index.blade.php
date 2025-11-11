@@ -14,12 +14,12 @@
     <div class="section" id="user-section">
         <div id="user-detail">
             <div class="avatar">
-                <img src="{{asset('storage/' .Auth::user()->avatar)}}" alt="avatar" class="imaged">
+                <img src="{{asset('storage/' .Auth::user()->employee->avatar)}}" alt="avatar" class="imaged">
             </div>
             <div id="user-info">
                 {{-- <h2>{{\Carbon\Carbon::now()->format('H:i:s')}}</h2> --}}
-                <h2 id="user-name">{{Auth::user()->full_name}}</h2>
-                <span id="user-role">{{Auth::user()->position}}</span>
+                <h2 id="user-name">{{Auth::user()->employee->first_name ." ". Auth::user()->employee->last_name}}</h2>
+                <span id="user-role">{{Auth::user()->employee->position->name}}</span>
 
             </div>
         </div>
@@ -212,8 +212,8 @@
                                     <img src="{{asset('storage/' .$data->avatar)}}" alt="image" class="image">
                                     <div class="in">
                                         <div>
-                                            <b>{{ $data->name }}</b><br>
-                                            <small class="text-muted">{{ $data->position }}</small>
+                                            <b>{{ $data->first_name }}</b><br>
+                                            <small class="text-muted">{{ $data->position_name }}</small>
                                         </div>
                                         <span class="badge {{ $data->time_in != null || $data->date != null ? "bg-success" : "bg-danger"}}">{{$data->time_in != null ? "Hadir" : "Absen"}}</span>
 

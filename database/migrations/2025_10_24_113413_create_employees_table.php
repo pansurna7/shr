@@ -16,7 +16,6 @@ return new class extends Migration
 
             // Foreign Keys to essential tables
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('departement_id')->constrained('departements')->onDelete('no action');
 
             // Corrected table name (assuming 'positions' is the correct table)
             $table->foreignId('position_id')->constrained('positions')->onDelete('no action');
@@ -52,7 +51,6 @@ return new class extends Migration
 
             $table->string('nomor_rekening')->nullable();
             $table->string('rekening_atas_nama')->nullable();
-
             $table->timestamps();
         });
     }

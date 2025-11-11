@@ -40,7 +40,12 @@
             </div>
             <div class="form-group boxed">
                 <div class="input-wrapper">
-                    <input type="text" class="form-control" value="{{ $employee->full_name }}" name="full_name" placeholder="Nama Lengkap" autocomplete="off">
+                    <input type="text" class="form-control" value="{{ $employee->first_name }}" name="first_name" placeholder="First Name" autocomplete="off">
+                </div>
+            </div>
+            <div class="form-group boxed">
+                <div class="input-wrapper">
+                    <input type="text" class="form-control" value="{{ $employee->last_name }}" name="last_name" placeholder="Last Name" autocomplete="off">
                 </div>
             </div>
             <div class="form-group boxed">
@@ -78,5 +83,17 @@
                 </div>
             </div>
         </div>
+    </form>
+
+    <form method="POST" action="{{ route('logout') }}">
+        @csrf
+        <div class="form-group boxed">
+            <div class="input-wrapper">
+                <a class="btn btn-warning btn-block" href="route('logout')" onclick="event.preventDefault();this.closest('form').submit();"><i class='bx bx-log-out-circle'></i>
+                {{ __('Log Out') }}
+                </a>
+            </div>
+        </div>
+
     </form>
 @endsection

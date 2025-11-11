@@ -59,9 +59,9 @@ class DepartementController extends Controller
     public function delete($id)
     {
         if($id){
-            $permission = Departement::find($id);
-            $permission->delete();
-            flash()->success('Permission deleted successfully');
+            $departement = Departement::find($id);
+            $departement->delete();
+            flash()->success('Departement deleted successfully');
             return redirect()->back();
         }
 

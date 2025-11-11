@@ -14,6 +14,8 @@ use App\Http\Controllers\SettingController;
 use App\Http\Controllers\UserController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\FrontEnd\MonitoringController;
 
 
 Route::get('/', function () {
@@ -106,6 +108,25 @@ Route::middleware(['auth','can:positions.permission'])->group(function () {
     Route::post('/position/edit',[PositionController::class,'edit'])->name('position.edit');
     Route::put('/position/update/{id}',[PositionController::class,'update'])->name('position.update');
     Route::post('/position/delete/{id}',[PositionController::class,'delete'])->name('position.delete');
+});
+
+Route::middleware(['auth','can:employees.permission'])->group(function () {
+    Route::get('/employees',[EmployeeController::class,'index'])->name('employee.index');
+    Route::get('/employee/create',[employeeController::class,'create'])->name('employee.create');
+    Route::post('/employee/store',[EmployeeController::class,'store'])->name('employee.store');
+    Route::get('/employee/edit/{id}',[EmployeeController::class,'edit'])->name('employee.edit');
+    Route::post('/employee/update/{id}',[EmployeeController::class,'update'])->name('employee.update');
+    Route::post('/employee/delete/{id}',[EmployeeController::class,'delete'])->name('employee.delete');
+});
+Route::middleware(['auth','can:monitorings.permission'])->group(function () {
+    Route::get('/monitorings',[PresensiController::class,'monitoring'])->name('monitoring.index');
+    Route::post('/getpresensi',[PresensiController::class,'getpresensi']);
+
+    // Route::get('/monitoring/create',[MonitoringController::class,'create'])->name('monitoring.create');
+    // Route::post('/monitoring/store',[MonitoringController::class,'store'])->name('monitoring.store');
+    // Route::get('/monitoring/edit/{id}',[MonitoringController::class,'edit'])->name('monitoring.edit');
+    // Route::post('/monitoring/update/{id}',[MonitoringController::class,'update'])->name('monitoring.update');
+    // Route::post('/monitoring/delete/{id}',[MonitoringController::class,'delete'])->name('monitoring.delete');
 });
 
 

@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('submissions', function (Blueprint $table) {
             $table->id();
-            $table->string('nik');
-            $table->foreign('nik')->references('nik')->on('users')->onDelete('cascade');
+            $table->bigInteger('employee_id');
+            $table->foreign('employee_id')->references('id')->on('employees')->onDelete('cascade');
             $table->date('date');
             $table->char('condition',1);
             $table->text('information');

@@ -10,9 +10,9 @@
 										<div class="d-flex flex-column align-items-center text-center">
 											<img src="{{ asset('storage/'. $user->avatar) }}" alt="Admin" class="rounded-circle p-1 bg-primary" width="110" height="110">
 											<div class="mt-3">
-												<h4>{{$user->full_name}}</h4>
-												<p class="mb-1">{{$user->position}}</p>
-												<p class="font-size-sm">{{$user->address}}</p>
+												<h4>{{$user->name}}</h4>
+												<p class="mb-1">{{$user->roles->first()->name}}</p>
+												{{-- <p class="font-size-sm">{{$user->employee->address}}</p> --}}
 												<button class="btn btn-light">Follow</button>
 												<button class="btn btn-light">Message</button>
 											</div>
@@ -52,10 +52,10 @@
                                             {{-- @method('PATCH') --}}
                                             <div class="row mb-3">
                                                 <div class="col-sm-3">
-                                                    <h6 class="mb-0">Full Name</h6>
+                                                    <h6 class="mb-0">User Name</h6>
                                                 </div>
                                                 <div class="col-sm-9">
-                                                    <input type="text" class="form-control" id="full_name" name="full_name" value="{{$user->full_name}}" />
+                                                    <input type="text" class="form-control" id="name" name="name" value="{{$user->name}}" />
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
@@ -66,12 +66,12 @@
                                                     <input type="text" class="form-control" id="email" name="email" value="{{$user->email}}" readonly />
                                                 </div>
                                             </div>
-                                            <div class="row mb-3">
+                                            {{-- <div class="row mb-3">
                                                 <div class="col-sm-3">
                                                     <h6 class="mb-0">Mobile</h6>
                                                 </div>
                                                 <div class="col-sm-9">
-                                                    <input type="text" class="form-control" id="mobile" name="mobile" value="{{$user->mobile}}" />
+                                                    <input type="text" class="form-control" id="mobile" name="mobile" value="{{$user->employee->mobile}}" />
                                                 </div>
                                             </div>
                                             <div class="row mb-3">
@@ -79,15 +79,15 @@
                                                     <h6 class="mb-0">Address</h6>
                                                 </div>
                                                 <div class="col-sm-9">
-                                                    <input type="text" class="form-control" id="address" name="address" value="{{$user->address}}" />
+                                                    <input type="text" class="form-control" id="address" name="address" value="{{$user->employee->address}}" />
                                                 </div>
-                                            </div>
+                                            </div> --}}
                                             <div class="row mb-3">
                                                 <div class="col-sm-3">
                                                     <h6 class="mb-0">Password</h6>
                                                 </div>
                                                 <div class="col-sm-9">
-                                                    <input type="password" class="form-control" id="password" name="password"  />
+                                                    <input type="password" class="form-control" id="password" name="password" autocomplete="off">
                                                     @error('password')
                                                         <span class="text-danger">{{ $message }}</span>
                                                     @enderror
@@ -123,6 +123,7 @@
     <script>
         $(document).ready(function () {
             $('.dropify').dropify();
+            $("#password").val("");
         });
     </script>
 

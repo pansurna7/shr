@@ -17,8 +17,8 @@
                         <b>{{ date('d-m-Y',strtotime($data->time_in)) }}</b><br>
                         {{-- <small class="text-muted">{{ $data->jabatan }}</small> --}}
                     </div>
-                    <span class="badge {{ $data->time_in != null && $data->date != null && $data->time_in <="07:00" ? "bg-success" : "bg-danger"}}">{{$data->time_in != null ? date('H:i:s',strtotime($data->time_in)) : "Absen"}}</span>
-                    <span class="badge {{ $data->time_out != null && $data->date != null && $data->time_out >="17:00" ? "bg-primary" : "bg-danger"}}">{{$data->time_out != null ? date('H:i:s',strtotime($data->time_out)) : "Absen"}}</span>
+                    <span class="badge {{ $data->time_in != null && $data->date != null && $data->time_in <="07:00" ? "bg-success" : "bg-danger"}}">{{$data->time_in != null ? date('H:i:s',strtotime($data->time_in)) : "Hadir"}}</span>
+                    <span class="badge {{ $data->time_out != null && $data->date != null && $data->time_out >="17:00" ? "bg-primary" : "bg-danger"}}">{{$data->time_out != null ? date('H:i:s',strtotime($data->time_out)) : "Hadir"}}</span>
                 </div>
             </div>
         </li>

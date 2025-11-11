@@ -13,7 +13,10 @@ use Spatie\Permission\Traits\HasRoles;
 class UserController extends Controller
 {
     public function index(){
-        $users=User::all();
+        // $users=User::role('!=','Super Admin')->get();
+        $users = User::whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'user');
+        })->get();
         return view('backend.users.index',compact('users'));
     }
 
@@ -28,24 +31,24 @@ class UserController extends Controller
         // dd($request->all());
         try {
             $validate = $request->validate([
-                        'userName' => 'required|string',
+                        // 'userName' => 'required|string',
                         'email' => 'required|email|unique:users,email',
-                        'nik' => 'required|unique:users,nik',
+                        // 'nik' => 'required|unique:users,nik',
                         'password' =>'required|string|min:8',
                         'role' =>'required',
                         'role' => 'exists:roles,id',
-                        'avatar' => 'required|image|mimes:jpg,png',
+                        // 'avatar' => 'required|image|mimes:jpg,png',
                     ]);
-            if($request->hasFile('avatar')){
-                $validate["avatar"] = $request->file("avatar")->store("avatar","public");
-            }
+            // if($request->hasFile('avatar')){
+            //     $validate["avatar"] = $request->file("avatar")->store("avatar","public");
+            // }
             $user=User::create([
                     'name'      => $validate['userName'],
                     'email'     => $validate['email'],
-                    'nik'       => $request->nik,
+                    // 'nik'       => $request->nik,
                     'password'  => Hash::make($request->password),
                     'status'    => filled('status'),
-                    // 'avatar'    => $validate['avatar'],
+                    'avatar'    => $validate['avatar'],
                 ]);
             if($request->role){
                 $roles=Role::where('id', $validate['role'])->get();
@@ -57,9 +60,9 @@ class UserController extends Controller
             flash()->success('User created succsessfully');
             return redirect()->back();
 
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            flash()->error('Please fix the errors in the form');
-            return back()->withErrors($e->validator)->withInput();
+        } catch (\Exception $e) {
+            flash()->error('Please fix the errors in the form' . $e->getMessage());
+            return back();
         }
 
     }
@@ -78,17 +81,17 @@ class UserController extends Controller
             $validate=$request->validate([
                         'userName' => 'required',
                         'email' => 'required|email',
-                        'nik' => 'required',
+                        // 'nik' => 'required',
                         'password' =>'nullable|string|min:8',
                         'role' =>'required',
                         'role' => 'exists:roles,id',
                         'avatar'=> 'nullable'
                     ]);
 
-            $user = User::find($id);
+            $user = User::findOrFail($id);
             $user->name = $validate['userName'];
             $user->email = $validate['email'];
-            $user->nik = $validate['nik'];
+            // $user->nik = $validate['nik'];
             $user->status = filled($request->status);
 
 

@@ -23,13 +23,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'nik',
-        'positon',
-        'avatar',
         'status',
-        'full_name',
-        'mobile',
-        'address'
+        'avatar',
     ];
 
     /**
@@ -55,6 +50,10 @@ class User extends Authenticatable
         ];
     }
 
+    public function employee():HasOne
+    {
+        return $this->hasOne(Employee::class);
+    }
     public function precense():HasOne
     {
         return $this->hasOne(Presence::class);

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FrontEnd;
 
 use App\Http\Controllers\Controller;
+use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -17,8 +18,8 @@ class PresensiController extends Controller
 {
     public function create(){
         $today = date('Y-m-d');
-        $nik = Auth::user()->nik;
-        $cek = DB::table('presences')->where('date',$today)->where('nik',$nik)->count();
+        $nik = Auth::user()->employee->nik;
+        $cek = DB::table('presences')->where('date',$today)->where('employee_id',$nik)->count();
         return view('frontend.presensi.create',compact('cek'));
     }
 
@@ -40,7 +41,7 @@ class PresensiController extends Controller
     public function store(Request $request)
     {
 
-        $nik = Auth::user()->nik;
+        $nik = Auth::user()->employee->id;
         $date = date('Y-m-d');
         $time_in = \Carbon\Carbon::now()->format('H:i:s');
         $time_out = \Carbon\Carbon::now()->format('H:i:s');
@@ -57,7 +58,7 @@ class PresensiController extends Controller
 
         $image = $request->image;
         $folderPath = "absensi/";
-        $cek = DB::table('presences')->where('date',$date)->where('nik',$nik)->count();
+        $cek = DB::table('presences')->where('date',$date)->where('employee_id',$nik)->count();
         if ($cek > 0) {
             $ket ="out";
         }else{
@@ -70,14 +71,14 @@ class PresensiController extends Controller
         $file =  $folderPath . $fileName;
 
         $data = [
-            'nik'           => $nik,
+            'employee_id'   => $nik,
             'date'          => $date,
             'time_in'       => $time_in,
             'photo_in'      => $fileName,
             'location_in'   => $lokasi,
         ];
         try {
-            $cek = DB::table('presences')->where('date',$date)->where('nik',$nik)->count();
+            $cek = DB::table('presences')->where('date',$date)->where('employee_id',$nik)->count();
             // cek radius user dengan target
             if($radius > 20){
                 echo "Error_radius|Maaf Anda Berada Diluar Radius, Jarak Anda " . $radius ." meter dari kantor";
@@ -89,7 +90,7 @@ class PresensiController extends Controller
                         'location_out' => $lokasi
                     ];
 
-                    DB::table('presences')->where('date',$date)->where('nik', $nik)->update($data_pulang);
+                    DB::table('presences')->where('date',$date)->where('employee_id', $nik)->update($data_pulang);
                     echo "success|Terimakasih, Anda Berhail Absen Pulang|out";
                     Storage::disk('public')->put($file,$image_base64);
                 }else{
@@ -106,49 +107,55 @@ class PresensiController extends Controller
 
     public function editProfile()
     {
-        $nik = Auth::user()->nik;
-        $employee=DB::table('users')
-        ->where('nik',$nik)
-        ->first();
+        $user       = Auth::user();
+        $employee   = $user->employee;
+        // $employee=DB::table('employee')
+        // ->where('user_id',$id)
+        // ->first();
         return view('frontend.presensi.editProfile',compact('employee'));
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request, $id)
     {
         // return $request->all();
+        $request->validate([
+                    'first_name'    => 'required',
+                    'last_name'     => 'nullable',
+                    'mobile'        => 'nullable|string|max:15',
+                    'address'       => 'nullable|string|max:255',
+                    'photo'         => 'nullable',
+                    'password'      => 'nullable|string|min:8',
+                ]);
         try {
-            $request->validate([
-                        'full_name'     => 'required',
-                        'password'      =>'nullable|string|min:8',
-                        'mobile'        => 'nullable|string|max:15',
-                        'address'        => 'nullable|string|max:255',
-                        'photo'        => 'nullable'
-                    ]);
 
             // return $validate;
+            $employee = Employee::findOrFail($id);
+            if($request->hasFile('photo')){
+                if($employee->avatar){
+                    Storage::disk('public')->delete($employee->avatar);
+                }
+                $employee->avatar   = $request->file("photo")->store("avatar","public");
+            }
+            $employee->first_name   = $request->first_name;
+            $employee->last_name    = $request->last_name;
+            $employee->mobile       = $request->mobile;
+            $employee->address      = $request->address;
+            $employee->save();
 
-            $user = User::find($request->id);
-            $user->full_name = $request->full_name;
-            $user->mobile = $request->mobile;
-            $user->address = $request->address;
+            $user = User::findOrFail($employee->user_id);
+            // dd($user);
+
             if(!empty($request->password)){
                 $user->password = Hash::make($request->password);
             }else{
                 unset($request->password);
             }
-            if($request->hasFile('photo')){
-                if($user->avatar){
-                    Storage::disk('public')->delete($user->avatar);
-                }
-                $user->avatar = $request->file("photo")->store("avatar","public");
-            }
 
-            $user->save();
             flash()->option('zIndex', 9999)->success('Profile updated successfully');
             return redirect()->route('frontend.dashboards');
         } catch (\Exception $e) {
-            flash()->error('Please fix the errors in the form');
-            return back()->withErrors($e)->withInput();
+            flash()->error('Please fix the errors in the form' . $e->getMessage());
+            return back();
         }
 
 
@@ -165,11 +172,11 @@ class PresensiController extends Controller
     {
         $bulan= $request->bulan;
         $tahun = $request->tahun;
-        $nik= Auth::user()->nik;
+        $nik= Auth::user()->employee->id;
         $history=DB::table('presences')
         ->whereRaw("MONTH(date)='$bulan'")
         ->whereRaw("YEAR(date)='$tahun'")
-        ->where('nik',$nik)
+        ->where('employee_id',$nik)
         ->orderBy('date')
         ->get();
         return view('frontend.presensi.getHistory',compact('history'));
@@ -177,9 +184,9 @@ class PresensiController extends Controller
 
     public  function izin()
     {
-        $nik = Auth::user()->nik;
+        $nik = Auth::user()->employee->id;
         // $dataizin = Submission::where('nik', $nik)->get();
-        $submissions = DB::table('submissions')->where('nik',$nik)->get();
+        $submissions = DB::table('submissions')->where('employee_id',$nik)->get();
 
         // dd($dataizin);
         return view('frontend.presensi.izin', compact('submissions'));
@@ -188,18 +195,18 @@ class PresensiController extends Controller
     {
         return view('frontend.presensi.pengajuan');
     }
-
+    /*
     public function storeizin(Request $request)
     {
-        $nik= Auth::user()->nik;
-        $employee = DB::table('users')->where('nik',$nik)->first();
+        // $id = Auth::user()->employee->id;
+        $employee_id = Auth::user()->employee->id;
         $tgl_izin=\Carbon\Carbon::parse($request->tgl_izin)->format('Y-m-d');
         $status=$request->status;
         $ket=$request->ket;
         if($request->hasFile('photo')){
             $photo = $request->file("photo")->store("submissions","public");
             Submission::create([
-                    'nik'           => $nik,
+                    'employee_id'   => $employee_id,
                     'date'          => $tgl_izin,
                     'condition'     => $status,
                     'information'   => $ket,
@@ -209,7 +216,7 @@ class PresensiController extends Controller
             return redirect()->route('presensi.izin');
         }else{
             Submission::create([
-                    'nik'           => $nik,
+                    'employee_id'   => $employee_id,
                     'date'          => $tgl_izin,
                     'condition'     => $status,
                     'information'   => $ket,
@@ -218,8 +225,99 @@ class PresensiController extends Controller
             return redirect()->route('presensi.izin');
         }
 
+    }
+    */
 
 
+    public function storeizin(Request $request)
+    {
+        // 1. Validasi Input
+        $request->validate([
+            'tgl_izin'  => 'required|date',
+            'status'    => 'required|string|max:50', // condition
+            'ket'       => 'required|string|max:255', // information
+            'photo'     => 'nullable|image|mimes:jpg,png,jpeg|max:2048', // Tambahkan validasi file
+        ]);
+
+        // 2. Ambil Employee ID & Format Tanggal
+        // Menggunakan Eloquent Relasi lebih baik, tapi kode Anda sudah berfungsi:
+        $employee_id = Auth::user()->employee->id;
+
+        // Carbon::parse sudah otomatis mengembalikan objek Carbon.
+        // Jika tgl_izin dari form sudah berupa Y-m-d, format ini opsional.
+        $tgl_izin = \Carbon\carbon::parse($request->tgl_izin)->toDateString();
+
+        // 3. Siapkan Data Dasar
+        $data = [
+            'employee_id'   => $employee_id,
+            'date'          => $tgl_izin,
+            'condition'     => $request->status, // Pastikan nama kolom database sesuai
+            'information'   => $request->ket,    // Pastikan nama kolom database sesuai
+        ];
+
+        // 4. Penanganan File Kondisional
+        if ($request->hasFile('photo')) {
+            // Simpan file dan tambahkan path ke array $data
+            $data['photo'] = $request->file("photo")->store("submissions", "public");
+        }
+
+        try {
+            // 5. Simpan Data ke Database (Hanya satu kali)
+            Submission::create($data);
+
+            flash()->success('Pengajuan izin berhasil dibuat.');
+            return redirect()->route('presensi.izin');
+
+        } catch (\Exception $e) {
+            // Log Error dan beri feedback
+            // \Log::error("Gagal menyimpan pengajuan: " . $e->getMessage());
+
+            // Hapus file yang sudah terlanjur diunggah jika terjadi error database
+            if (isset($data['photo'])) {
+                Storage::disk('public')->delete($data['photo']);
+            }
+
+            flash()->error('Gagal membuat pengajuan. Silakan coba lagi.' .$e->getMessage());
+            return redirect()->back()->withInput();
+        }
 
     }
+
+    public function monitoring(Request $request)
+    {
+        // $date = $request->tanggal;
+        // $presences = Presence::with('employee.position.departement')->get();
+        return view('frontend.presensi.monitoring');
+    }
+
+
+
+    public function getpresensi(Request $request)
+    {
+        // 1. Proses Tanggal
+        $tanggalRange = explode(' to ', $request->tanggal);
+        $tanggalAwal = $tanggalRange[0];
+        $tanggalAkhir = $tanggalRange[1] ?? $tanggalRange[0];
+
+        // Gunakan try-catch untuk penanganan error format tanggal
+        try {
+            $tanggalAwalDB = \Carbon\carbon::createFromFormat('d-m-Y', $tanggalAwal)->toDateString();
+            $tanggalAkhirDB = \Carbon\carbon::createFromFormat('d-m-Y', $tanggalAkhir)->toDateString();
+             
+        } catch (\Exception $e) {
+            // Jika format tanggal tidak sesuai (jarang terjadi jika menggunakan flatpickr),
+            // bisa dikembalikan error atau default ke hari ini.
+            return response()->json(['error' => 'Format tanggal tidak valid.'], 422);
+        }
+
+        // 2. Query Data dengan Eager Loading
+
+        $presences = Presence::with('employee.position.departement')
+            ->whereBetween('date', [$tanggalAwalDB, $tanggalAkhirDB])
+            ->get();
+
+        // 3. Kembalikan View (HTML yang akan dimasukkan ke #loadpresensi)
+        return view('frontend.presensi.getpresensi', compact('presences'));
+    }
+
 }

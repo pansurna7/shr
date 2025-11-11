@@ -38,4 +38,38 @@ class PositionController extends Controller
             // return back()->withErrors($e)->withInput();
         }
     }
+    public function edit(Request $request)
+    {
+        $position = Position::find($request->id);
+        $departements = Departement::pluck('name', 'id');
+        return view('backend.position.edit',compact('position','departements'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        //dd($request->all());
+        $position = Position::findOrFail($id);
+        $request->validate([
+            'name' => 'required|max:255|unique:departements,name,' .$id,
+            'level' => 'required|max:255'
+        ]);
+        $position->update($request->all());
+        flash()->success('Position updated successfully');
+        return response()->json([
+            'message'       => 'Departement Updated Successfully!',
+            'position'   => $position
+        ]);
+
+    }
+
+    public function delete($id)
+    {
+        if($id){
+            $position = Position::find($id);
+            $position->delete();
+            flash()->success('Position deleted successfully');
+            return redirect()->back();
+        }
+
+    }
 }
