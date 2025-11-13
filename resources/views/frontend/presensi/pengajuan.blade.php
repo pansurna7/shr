@@ -54,9 +54,9 @@
                     <div class="form-group">
                         <select name="status" id="status" class="form-control">
                             <option value="">Pilih Jenis Pengajuan</option>
-                            <option value="0">Izin</option>
-                            <option value="1">Sakit Tanpa Surat Dokter</option>
-                            <option value="2">Sakit Dengan Surat Dokter</option>
+                            <option value="1">Izin</option>
+                            <option value="2">Sakit (Tanpa Surat Dokter)</option>
+                            <option value="3">Sakit (Dengan Surat Dokter)</option>
                         </select>
                     </div>
                     <div class="from-group">

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FrontEnd;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Employee;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -12,15 +13,16 @@ use App\Models\Submission;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-use PhpParser\Node\Stmt\TraitUseAdaptation\Precedence;
 
 class PresensiController extends Controller
 {
     public function create(){
         $today = date('Y-m-d');
-        $nik = Auth::user()->employee->nik;
+        $nik = Auth::user()->employee->id;
+        $branch_id = Auth::user()->employee->branch_id;
         $cek = DB::table('presences')->where('date',$today)->where('employee_id',$nik)->count();
-        return view('frontend.presensi.create',compact('cek'));
+        $office_location = Branch::where('id',$branch_id)->first();
+        return view('frontend.presensi.create',compact('cek','office_location'));
     }
 
     //Menghitung Jarak titik koordinat
@@ -42,14 +44,19 @@ class PresensiController extends Controller
     {
 
         $nik = Auth::user()->employee->id;
+        $branch_id = Auth::user()->employee->branch_id;
+        $branch_location = Branch::where('id',$branch_id)->first();
+        $location = $branch_location->location;
+        $lok_branch = explode(',',$location);
+        $latOffice = $lok_branch[0];
+        $longOffice = $lok_branch[1];
+        $branch_radius = $branch_location->radius;
+
         $date = date('Y-m-d');
         $time_in = \Carbon\Carbon::now()->format('H:i:s');
         $time_out = \Carbon\Carbon::now()->format('H:i:s');
 
         $lokasi = $request->lokasi;
-        $officeLocation=[-6.216866477653331, 106.67630338286085];
-        $latOffice = -6.216866477653331;
-        $longOffice = 106.67630338286085;
         $userLocation = explode(",",$lokasi);
         $latUser= $userLocation[0];
         $longUser = $userLocation[1];
@@ -80,7 +87,7 @@ class PresensiController extends Controller
         try {
             $cek = DB::table('presences')->where('date',$date)->where('employee_id',$nik)->count();
             // cek radius user dengan target
-            if($radius > 20){
+            if($radius > $branch_radius){
                 echo "Error_radius|Maaf Anda Berada Diluar Radius, Jarak Anda " . $radius ." meter dari kantor";
             }else{
                 if($cek > 0){
@@ -303,7 +310,7 @@ class PresensiController extends Controller
         try {
             $tanggalAwalDB = \Carbon\carbon::createFromFormat('d-m-Y', $tanggalAwal)->toDateString();
             $tanggalAkhirDB = \Carbon\carbon::createFromFormat('d-m-Y', $tanggalAkhir)->toDateString();
-             
+
         } catch (\Exception $e) {
             // Jika format tanggal tidak sesuai (jarang terjadi jika menggunakan flatpickr),
             // bisa dikembalikan error atau default ke hari ini.
@@ -320,4 +327,123 @@ class PresensiController extends Controller
         return view('frontend.presensi.getpresensi', compact('presences'));
     }
 
+    public function showmap(Request $request)
+    {
+        // dd($request->id);
+        $id = $request->id;
+        $presence = Presence::where('id', $id)->first();
+
+        return view('frontend.presensi.showmap', compact('presence'));
+    }
+
+    public function reportPresence()
+    {
+        $employees = Employee::all();
+        $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
+        return view('frontend.presensi.reportpresence',compact('nama_bulan','employees'));
+    }
+
+    public function cetakreport(Request $request)
+    {
+        $id    = $request->id;
+        // dd("ID yang dicari: " . $id);
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+
+        // Array untuk mapping nama bulan (Sudah benar)
+        $nama_bulan = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        // 1. Ambil Detail Karyawan (Sudah benar)
+        $employee = Employee::where('id', $id)->first();
+        // dd($employee);
+        // 2. Ambil Data Presensi (Wajib ditambahkan)
+        // Gunakan whereMonth dan whereYear untuk memfilter presensi
+        // 'date' adalah nama kolom tanggal di tabel presences.
+        $presences = Presence::where('employee_id', $id)
+            ->whereMonth('date', $bulan)
+            ->whereYear('date', $tahun)
+            // Urutkan berdasarkan tanggal untuk laporan
+            ->orderBy('date', 'asc')
+            ->get();
+
+        // 3. Penanganan Jika Karyawan Tidak Ditemukan
+        // if (!$employee) {
+        //     // Misalnya, kembalikan response error atau redirect
+        //     return redirect()->back()->with('error', 'Karyawan tidak ditemukan.');
+        // }
+
+        // 4. Kirim semua data ke View
+        return view('frontend.presensi.cetakReport', compact(
+            'bulan',
+            'tahun',
+            'nama_bulan',
+            'employee',
+            'presences' // Kirim data presensi
+        ));
+    }
+
+    public function rekapPresence()
+    {
+        // $employees = Employee::all();
+        $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
+        return view('frontend.presensi.rekappresence',compact('nama_bulan'));
+    }
+
+    public function cetakrekap(Request $request)
+    {
+        $bulan = $request->bulan;
+        $tahun = $request->tahun;
+
+        $nama_bulan = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+
+        $select = [
+            'p.employee_id',
+            'e.nik',
+            "e.first_name + ' ' + e.last_name AS name",
+        ];
+
+        for ($i = 1; $i <= 31; $i++) {
+            $select[] = "
+                MAX(
+                    IIF(DATEPART(day, p.date) = $i,
+                        -- ✅ PERBAIKAN: Konversi p.time_in ke VARCHAR
+                        CONVERT(VARCHAR, p.time_in, 108) + ' - ' + ISNULL(CONVERT(VARCHAR, p.time_out, 108), '00:00:00'),
+                        ''
+                    )
+                ) AS tgl_$i
+            ";
+        }
+
+        $presences = Presence::selectRaw(implode(', ', $select))
+            ->from('presences as p')
+            ->join('employees as e', 'p.employee_id', '=', 'e.id')
+            ->whereRaw('DATEPART(month, p.date) = ? AND DATEPART(year, p.date) = ?', [$bulan, $tahun])
+            ->groupBy('p.employee_id', 'e.nik', 'e.first_name', 'e.last_name')
+            ->get();
+
+        return view('frontend.presensi.cetakRekap', compact(
+            'bulan',
+            'tahun',
+            'nama_bulan',
+            'presences'   // Kirim semua data presensi mentah
+        ));
+    }
+
+    public function submission()
+    {
+        $submissions=Submission::orderBy('id','desc')->with('employee')->get();
+        return view('frontend.presensi.submission',compact('submissions'));
+
+    }
+    public function updateStatus(Request $request, $id)
+    {
+        $submission = Submission::findOrFail($id);
+
+        // Ambil status dari input hidden form
+        $new_status = $request->input('status');
+
+        $submission->update(['status' => $new_status]);
+
+        return redirect()->back()->with('success', 'Status pengajuan berhasil diperbarui!');
+    }
 }

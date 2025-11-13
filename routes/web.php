@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackendDashboardController;
+use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BuilderControler;
 use App\Http\Controllers\DepartementController;
 use App\Http\Controllers\FrontEnd\DashboardController;
@@ -92,6 +93,14 @@ Route::group(['as' => 'menus.', 'prefix' => 'menus/{id}'], function(){
 
 // employee
 
+Route::middleware(['auth','can:branches.permission'])->group(function () {
+    Route::get('/branches',[BranchController::class,'index'])->name('branch.index');
+    // Route::get('/branch/create',[BranchController::class,'create'])->name('branch.create');
+    Route::post('/branch/store',[BranchController::class,'store'])->name('branch.store');
+    Route::post('/branch/edit',[BranchController::class,'edit'])->name('branch.edit');
+    Route::put('/branch/update/{id}',[BranchController::class,'update'])->name('branch.update');
+    Route::post('/branch/delete/{id}',[BranchController::class,'delete'])->name('branch.delete');
+});
 Route::middleware(['auth','can:departements.permission'])->group(function () {
     Route::get('/departements',[DepartementController::class,'index'])->name('departement.index');
     // Route::get('/departement/create',[DepartementController::class,'create'])->name('departement.create');
@@ -121,12 +130,23 @@ Route::middleware(['auth','can:employees.permission'])->group(function () {
 Route::middleware(['auth','can:monitorings.permission'])->group(function () {
     Route::get('/monitorings',[PresensiController::class,'monitoring'])->name('monitoring.index');
     Route::post('/getpresensi',[PresensiController::class,'getpresensi']);
+    Route::post('/showmap',[PresensiController::class,'showmap']);
+});
+Route::middleware(['auth','can:submissions.permission'])->group(function () {
+    Route::get('/submissions',[PresensiController::class,'submission'])->name('submission.index');
+    Route::patch('/submissions/{id}/status', [PresensiController::class, 'updateStatus'])->name('submissions.update_status');
+    Route::post('/showmap',[PresensiController::class,'showmap']);
+});
 
-    // Route::get('/monitoring/create',[MonitoringController::class,'create'])->name('monitoring.create');
-    // Route::post('/monitoring/store',[MonitoringController::class,'store'])->name('monitoring.store');
-    // Route::get('/monitoring/edit/{id}',[MonitoringController::class,'edit'])->name('monitoring.edit');
-    // Route::post('/monitoring/update/{id}',[MonitoringController::class,'update'])->name('monitoring.update');
-    // Route::post('/monitoring/delete/{id}',[MonitoringController::class,'delete'])->name('monitoring.delete');
+Route::middleware(['auth','can:reportpresences.permission'])->group(function () {
+    Route::get('/reportpresences',[PresensiController::class,'reportPresence'])->name('reportPresence.index');
+    Route::post('/cetakreport',[PresensiController::class,'cetakreport'])->name('report.cetak');
+
+});
+Route::middleware(['auth','can:recaps.permission'])->group(function () {
+    Route::get('/recaps',[PresensiController::class,'rekapPresence'])->name('rekapPresence.index');
+    Route::post('/cetakrekap',[PresensiController::class,'cetakrekap'])->name('rekap.cetak');
+
 });
 
 

@@ -1,23 +1,24 @@
 @extends('backend.layouts.app')
 @section('title','Monitoring')
 @push('css')
-<style>
-.img-circle {
-    /* Atur ukuran gambar (kunci agar lingkaran terlihat sempurna) */
-    width: 60px;
-    height: 60px;
-    /* Penting: Pastikan lebar dan tinggi sama (square) */
 
-    /* Properti utama untuk membuat lingkaran */
-    border-radius: 50%;
+    <style>
+        .img-circle {
+            /* Atur ukuran gambar (kunci agar lingkaran terlihat sempurna) */
+            width: 60px;
+            height: 60px;
+            /* Penting: Pastikan lebar dan tinggi sama (square) */
 
-    /* Opsi tambahan: Agar gambar tidak terdistorsi saat diubah ukurannya */
-    object-fit: cover;
+            /* Properti utama untuk membuat lingkaran */
+            border-radius: 50%;
 
-    /* Opsi tambahan: Border melingkar */
-    border: 2px solid #ccc;
-}
-</style>
+            /* Opsi tambahan: Agar gambar tidak terdistorsi saat diubah ukurannya */
+            object-fit: cover;
+
+            /* Opsi tambahan: Border melingkar */
+            border: 2px solid #ccc;
+        }
+    </style>
 @section('content')
 
     <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
@@ -107,7 +108,7 @@
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content bg-light">
                 <div class="modal-header">
-                    <h5 class="modal-title text-white"Employee Location</h5>
+                    <h5 class="modal-title text-white">Presence Location</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-white" id="loadMap">
@@ -166,17 +167,16 @@
         }
         loadPresensi();
         new DataTable('#tblMonitoring',{
-            searching : false,
-            lengthChange: false,
-            pageLength: 500,
-            columnDefs:[
-                            {targets:[0,1,2,3,4,5,6,7,8,9], orderable:false},
-                            // {targets:6, orderable:false},
-                        ]
+            searching       : false,
+            lengthChange    : false,
+            paging          : false,
+            info            : false,
+            pageLength      : 500,
+            columnDefs      :   [
+                                    {targets:[0,1,2,3,4,5,6,7,8,9], orderable:false},
+                                    // {targets:6, orderable:false},
+                                ]
 
         });
-
-        
-
     </script>
 @endpush

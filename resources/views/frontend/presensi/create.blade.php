@@ -31,7 +31,7 @@
 
     <div class="row" style="margin-top: 70px">
         <div class="col">
-            <input type="hidden" id="lokasi">
+            <input type="show" id="lokasi">
             <div class="webcam-capture"></div>
         </div>
     </div>
@@ -88,18 +88,24 @@
             lokasi.value = position.coords.latitude+","+position.coords.longitude;
 
             // menggunakan JS Leaflet
-             var map = L.map('map').setView([position.coords.latitude, position.coords.longitude], 17);
-             L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            var map             = L.map('map').setView([position.coords.latitude, position.coords.longitude], 17);
+            var office_location = "{{$office_location->location}}"
+            var radius          = "{{$office_location->radius}}"
+            var lok             = office_location.split(",");
+            var office_lat      = lok[0];
+            var office_log      = lok[1];
+
+            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             }).addTo(map);
 
             var marker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(map);
-            var circle = L.circle([-6.216866477653331, 106.67630338286085], {
+            var circle = L.circle([office_lat, office_log], {
                 color: 'red',
                 fillColor: '#f03',
                 fillOpacity: 0.5,
-                radius: 20 //radius dengan satuan meter
+                radius: radius //radius dengan satuan meter
             }).addTo(map);
         }
 

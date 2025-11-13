@@ -1,6 +1,6 @@
 @php
     // Function Untuk Menghitung Selisih Jam
- function selisih($jam_masuk, $jam_keluar)
+    function selisih($jam_masuk, $jam_keluar)
         {
             list($h, $m, $s) = explode(":", $jam_masuk);
             $dtAwal = mktime($h, $m, $s, "1", "1", "1");
@@ -40,19 +40,19 @@
             </td>
             <td class="align-middle text-center">
                 @if ($d->photo_out)
-                    {{-- Jika ada foto, tampilkan gambar --}}
+                {{-- Jika ada foto, tampilkan gambar --}}
                     <img class="img-circle"
-                        src="{{ asset('storage/absensi/' . $d->photo_out) }}"
-                        alt="Foto Pulang">
-                        @else
-                        {{-- Jika tidak ada foto, tampilkan ikon (Menggunakan {!! !!} aman di sini) --}}
-                        <i class="bx bx-loader-circle"></i>
-                        @endif
-                    </td>
-                    <td class="align-middle text-center">
-                        @if ($d->time_in >= "07:00")
-                        @php
-                    $jam_terlambat = selisih("07:00:00", $d->time_in)
+                    src="{{ asset('storage/absensi/' . $d->photo_out) }}"
+                    alt="Foto Pulang">
+                @else
+                {{-- Jika tidak ada foto, tampilkan ikon (Menggunakan {!! !!} aman di sini) --}}
+                    <i class="bx bx-loader-circle"></i>
+                @endif
+            </td>
+            <td class="align-middle text-center">
+                @if ($d->time_in >= "07:00")
+                    @php
+                        $jam_terlambat = selisih("07:00:00", $d->time_in)
                     @endphp
                     <span class="badge bg-danger">Terlambat : {{$jam_terlambat}}</span>
                 @else
@@ -61,7 +61,7 @@
             </td>
             <td class="align-middle text-center">
                 {{-- @can('position.edit') --}}
-                    <a href="#" class="btn btn-primary" id="showMap">
+                    <a href="#" class="btn btn-success showMap" id="{{ $d->id }}">
                         <i class="bx bx-map-pin"></i>
                     </a>
                 {{-- @endcan --}}
@@ -73,15 +73,47 @@
         <td colspan="7" class="text-center">No Data Found!</td>
     </tr>
 @endif
+<script>
+    $(document).ready(function () {
+       $("#modal-location").on('shown.bs.modal', function () {
 
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            $("#showMap").click(function (e) {
-            // e.preventDefault();
-                alert('ok');
-            });
+            map.invalidateSize();
+
         });
+        // Definisi token CSRF sebagai variabel aman
+        const csrfToken = '{{ csrf_token() }}';
 
-    </script>
-@endpush
+    // 1. Tangani Klik pada Elemen dengan Class 'showMap'
+    $(".showMap").click(function (e) {
+        e.preventDefault(); // Mencegah perilaku default jika ini adalah link
+
+        // 2. Mendapatkan ID dari elemen yang DIKLIK (KONTEKS YANG BENAR)
+        let id = $(this).attr("id");
+
+        $.ajax({
+            type    : "POST",
+            url     : "/showmap",
+            data    : {
+                        _token  : csrfToken, // Menggunakan variabel yang sudah di-quote
+                        id      : id,
+                        },
+            cache   : false,
+            success: function (response) {
+                console.log("ID yang dikirim:", id);
+
+                // 3. Muat respons (misalnya peta) ke dalam modal atau elemen lain
+
+
+                // Tampilkan modal setelah konten berhasil dimuat
+                $("#modal-location").modal('show');
+                $("#loadMap").html(response);
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error:", status, error);
+            }
+        });
+    });
+
+});
+</script>
+{{-- @endpush --}}

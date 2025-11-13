@@ -1,11 +1,11 @@
 @extends('backend.layouts.app')
 @section('title','Edit')
-@push('style')
-<style>
-    .dropify-wrapper .dropify-message p{
-            font-size: initial;
-        }
-</style>
+@push('css')
+    <style>
+        .dropify-wrapper .dropify-message p{
+                font-size: initial;
+            }
+    </style>
 @endpush
 @section('content')
 

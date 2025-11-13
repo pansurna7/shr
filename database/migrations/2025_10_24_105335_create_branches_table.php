@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->text('address');
             $table->text('location');
+            $table->text('radius');
             $table->string('meal_allowance');
             $table->timestamps();
         });
