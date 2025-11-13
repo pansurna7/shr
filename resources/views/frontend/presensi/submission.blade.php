@@ -5,7 +5,7 @@
     <style>
         .img-circle {
             /* Atur ukuran gambar (kunci agar lingkaran terlihat sempurna) */
-            width: 80px;
+            width: 100px;
             height: 60px;
             /* Penting: Pastikan lebar dan tinggi sama (square) */
 
@@ -19,15 +19,7 @@
             /* border: 2px solid #ccc; */
         }
         /* Gambar di dalam tabel */
-        .zoomable-image {
-            cursor: pointer; /* Menunjukkan bahwa gambar dapat diklik */
-            transition: 0.3s;
-            width: 50px; /* Ukuran default gambar di tabel */
-            height: 50px;
-            object-fit: cover;
-            border-radius: 5px; /* Sedikit border-radius agar lebih halus */
-        }
-
+        
         .zoomable-image:hover {
             opacity: 0.7; /* Sedikit efek saat dihover */
         }
@@ -213,13 +205,16 @@
                                                 @endcan
                                             </form>
                                         @else
-                                            <button type="submit" class="btn btn-sm btn-success m-1" disabled>
-                                                    Approve
-                                            </button>
-                                            {{-- Tombol Reject (Status = 2) --}}
-                                            <button type="submit" class="btn btn-sm btn-danger m-1" disabled>
-                                                    Reject
-                                            </button>
+                                            @can('submissions.approv')
+                                                <button type="submit" class="btn btn-sm btn-secondary m-1" disabled>
+                                                        Approve
+                                                </button>
+                                            @endcan
+                                            @can('submissions.approv')
+                                                <button type="submit" class="btn btn-sm btn-secondary m-1" disabled>
+                                                        Reject
+                                                </button>
+                                            @endcan
                                         @endif
                                     </td>
                                 </tr>
