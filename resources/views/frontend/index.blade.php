@@ -14,13 +14,20 @@
             color       : white;
             font-size   : 25px;
             right       : 8px;
-            margin-top  : 25px;
+            margin-top  : 35px;
 
         }
         /* Kelas untuk menonaktifkan efek hover (misalnya saat tombol sudah tidak aktif) */
         .logout:hover {
             color: white !important; /* Ganti dengan warna teks link default Anda */
             cursor: default;       /* Mengubah kursor agar tidak terlihat bisa diklik */
+        }
+        #user-branch{
+            position: relative;
+            display: block;
+            margin-top: 15px;
+            color: white
+
         }
     </style>
 @endpush
@@ -44,11 +51,11 @@
                 <img src="{{asset('storage/' .Auth::user()->employee->avatar)}}" alt="avatar" class="imaged">
             </div>
             <div id="user-info">
-
                 <h3 id="user-name">{{Auth::user()->employee->first_name ." ". Auth::user()->employee->last_name}}</h3>
                 <span id="user-role">{{Auth::user()->employee->position->name}}</span>
-
+                <span id="user-branch">{{Auth::user()->employee->branch->name}}</span>
             </div>
+
         </div>
     </div>
 

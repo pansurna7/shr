@@ -95,9 +95,9 @@
             var office_lat      = lok[0];
             var office_log      = lok[1];
 
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            L.tileLayer('http://{s}.google.com/vt?lyrs=m&x={x}&y={y}&z={z}',{
+                maxZoom: 20,
+                subdomains:['mt0','mt1','mt2','mt3']
             }).addTo(map);
 
             var marker = L.marker([position.coords.latitude, position.coords.longitude]).addTo(map);
