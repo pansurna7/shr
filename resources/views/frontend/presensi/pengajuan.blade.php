@@ -5,7 +5,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css" rel="stylesheet">
 <style>
     .datepicker-modal{
-        max-height: 430px !important;
+        max-height: 500px !important;
     }
 
     .datepicker-date-display{
@@ -44,7 +44,7 @@
 @section('content')
 <div class="row" style="margin-top: 4rem">
     <div class="col">
-        <form action="{{route('store.izin')}}" method="POST" enctype="multipart/form-data" id="frmIzin">
+        <form action="{{route('store.izin')}}" method="POST" enctype="multipart/form-data" id="frmIzin" autocomplete="off">
             @csrf
             <div class="row">
                 <div class="col">
@@ -90,6 +90,35 @@
         $(".datepicker").datepicker({
             format: "dd-mm-yyyy"
         });
+
+        $("#tgl_izin").change(function (e) {
+            // 1. Ambil nilai dengan sintaks jQuery yang benar: $(this).val()
+            var tgl_pengajuan = $(this).val();
+            $.ajax({
+                type: "POST",
+                url: "/presensi/cektglpengajuan",
+                data: {
+                        _token  :"{{csrf_token()}}",
+                        tgl_izin:tgl_pengajuan,
+                },
+                cache: false,
+                success: function (response) {
+                    if(response == 1){
+                        Swal.fire({
+                            title: 'Oops',
+                            text: 'Anda Sudah Melakukan Pengajuan',
+                            icon: 'warning',
+                            // confirmButtonText: 'OK'
+                        }).then((result) => {
+                            /* Read more about handling dismissals below */
+                                $("#tgl_izin").val("");
+                            });
+                        return false;
+                    }
+                }
+            });
+
+        });
     });
     $('#frmIzin').submit(function(e){
         var tgl_izin=$('#tgl_izin').val();
@@ -122,7 +151,7 @@
                 // confirmButtonText: 'OK'
             })
             return false;
-        }else if (status == 2 && fileUpload == "") {
+        }else if (status == 3 && fileUpload == "") {
             Swal.fire({
                 title: 'Oops',
                 text: 'Surat Keterangan Dokter Harus Diupload',
@@ -131,6 +160,8 @@
             })
             return false;
         };
+
+
 
 
     })

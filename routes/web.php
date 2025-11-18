@@ -177,6 +177,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('presensi/izin',[PresensiController::class,'izin'])->name('presensi.izin');
     Route::get('presensi/pengajuan',[PresensiController::class,'pengajuan'])->name('presensi.pengajuan');
     Route::post('/presensi/storeizin',[PresensiController::class,'storeizin'])->name('store.izin');
+    Route::post('/presensi/cektglpengajuan',[PresensiController::class,'cektglpengajuan']);
 });
 
 

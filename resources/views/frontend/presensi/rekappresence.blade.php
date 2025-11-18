@@ -71,7 +71,7 @@
                                                     <button type="submit" name="cetak" class="btn btn-light px-5"><i class="bx bx-printer"></i>Cetak</button>
                                                 @endcan
                                                 @can('recap.export')
-                                                    <button type="submit" name="export" class="btn btn-light px-5"><i class="bx bx-export"></i>Export to Excel</button>
+                                                    <button type="submit" name="export-excel" class="btn btn-light px-5"><i class="bx bx-export"></i>Export to Excel</button>
                                                 @endcan
                                             </div>
                                 </div>

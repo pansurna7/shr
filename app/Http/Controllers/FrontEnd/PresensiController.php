@@ -202,38 +202,34 @@ class PresensiController extends Controller
     {
         return view('frontend.presensi.pengajuan');
     }
-    /*
-    public function storeizin(Request $request)
-    {
-        // $id = Auth::user()->employee->id;
-        $employee_id = Auth::user()->employee->id;
-        $tgl_izin=\Carbon\Carbon::parse($request->tgl_izin)->format('Y-m-d');
-        $status=$request->status;
-        $ket=$request->ket;
-        if($request->hasFile('photo')){
-            $photo = $request->file("photo")->store("submissions","public");
-            Submission::create([
-                    'employee_id'   => $employee_id,
-                    'date'          => $tgl_izin,
-                    'condition'     => $status,
-                    'information'   => $ket,
-                    'photo'         => $photo,
-                ]);
-            flash()->success('Submission created succsessfully');
-            return redirect()->route('presensi.izin');
-        }else{
-            Submission::create([
-                    'employee_id'   => $employee_id,
-                    'date'          => $tgl_izin,
-                    'condition'     => $status,
-                    'information'   => $ket,
-                ]);
-            flash()->success('Submission created succsessfully');
-            return redirect()->route('presensi.izin');
-        }
 
+    public function cektglpengajuan(Request $request)
+{
+    // 1. Ambil ID Karyawan yang Sedang Login
+    $user_id = Auth::user()->employee->id;
+
+    // 2. Ambil dan Konversi Tanggal
+    // Perbaikan: Akses input request menggunakan nama yang benar (tgl_izin)
+    // dan pastikan menggunakan format tanggal YYYY-MM-DD untuk query
+    try {
+        $tgl_pengajuan = \Carbon\carbon::parse($request->tgl_izin)->format('Y-m-d');
+    } catch (\Exception $e) {
+        // Tangani jika format tanggal dari frontend salah
+        return response()->json(['count' => 0, 'error' => 'Format tanggal tidak valid.'], 400);
     }
-    */
+
+    // 3. Cek Submission di Database
+    // Perbaikan:
+    // - Gunakan kolom foreign key employee_id atau user_id, bukan 'id' pada tabel Submission.
+    // - Gunakan kolom tanggal yang benar, misalnya 'tanggal' atau 'date'.
+    // - Gunakan whereDate() untuk membandingkan hanya tanggal.
+    $cek = Submission::where('employee_id', $user_id) // Asumsi FK adalah 'employee_id'
+                        ->whereDate('date', $tgl_pengajuan) // Asumsi kolom tanggal adalah 'tanggal'
+                        ->count();
+
+    // 4. Kembalikan Hasil (Disarankan JSON)
+    return $cek;
+}
 
 
     public function storeizin(Request $request)
@@ -373,6 +369,34 @@ class PresensiController extends Controller
         // }
 
         // 4. Kirim semua data ke View
+
+        // untuk tombol export
+        if(isset($_POST['export-excel'])){
+            $time = date('d-M-Y H:i:s');
+
+            // 1. PERBAIKAN CONTENT-TYPE
+            // Gunakan application/vnd.ms-excel (untuk format .xls) atau
+            // application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (untuk .xlsx)
+            header("Content-type: application/vnd.ms-excel");
+
+            // 2. PERBAIKAN FILENAME
+            // Pastikan ekstensi file sesuai dengan Content-type
+            header("Content-Disposition: attachment; filename=Report Presensi Karyawan $time.xls");
+
+            // Tambahkan header berikut untuk kompatibilitas browser
+            header("Pragma: no-cache");
+            header("Expires: 0");
+
+            // Di sini, Anda harus menambahkan kode untuk menampilkan (echo) data HTML tabel
+            // yang ingin Anda export ke Excel.
+            return view('frontend.presensi.cetakReportExcel', compact(
+                'bulan',
+                'tahun',
+                'nama_bulan',
+                'employee',
+                'presences' // Kirim data presensi
+            ));
+        }
         return view('frontend.presensi.cetakReport', compact(
             'bulan',
             'tahun',
@@ -386,6 +410,9 @@ class PresensiController extends Controller
     {
         // $employees = Employee::all();
         $nama_bulan = ["", "Januari","Februari","Maret","April","Mei","Juni","July","Agustus","September","Oktober","November","Desember"];
+
+
+
         return view('frontend.presensi.rekappresence',compact('nama_bulan'));
     }
 
@@ -420,6 +447,27 @@ class PresensiController extends Controller
             ->whereRaw('DATEPART(month, p.date) = ? AND DATEPART(year, p.date) = ?', [$bulan, $tahun])
             ->groupBy('p.employee_id', 'e.nik', 'e.first_name', 'e.last_name')
             ->get();
+
+        // untuk tombol export
+        if(isset($_POST['export-excel'])){
+            $time = date('d-M-Y H:i:s');
+
+            // 1. PERBAIKAN CONTENT-TYPE
+            // Gunakan application/vnd.ms-excel (untuk format .xls) atau
+            // application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (untuk .xlsx)
+            header("Content-type: application/vnd.ms-excel");
+
+            // 2. PERBAIKAN FILENAME
+            // Pastikan ekstensi file sesuai dengan Content-type
+            header("Content-Disposition: attachment; filename=Rekap Presensi Karyawan $time.xls");
+
+            // Tambahkan header berikut untuk kompatibilitas browser
+            header("Pragma: no-cache");
+            header("Expires: 0");
+
+            // Di sini, Anda harus menambahkan kode untuk menampilkan (echo) data HTML tabel
+            // yang ingin Anda export ke Excel.
+        }
 
         return view('frontend.presensi.cetakRekap', compact(
             'bulan',

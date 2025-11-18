@@ -8,17 +8,44 @@
             border-radius: 50%;
             object-fit: cover; /* Optional: ensures the image covers the entire circular area without distortion */
         }
+
+        .logout{
+            position    : absolute;
+            color       : white;
+            font-size   : 25px;
+            right       : 8px;
+            margin-top  : 25px;
+
+        }
+        /* Kelas untuk menonaktifkan efek hover (misalnya saat tombol sudah tidak aktif) */
+        .logout:hover {
+            color: white !important; /* Ganti dengan warna teks link default Anda */
+            cursor: default;       /* Mengubah kursor agar tidak terlihat bisa diklik */
+        }
     </style>
 @endpush
 @section('content')
     <div class="section" id="user-section">
+                {{-- 1. Definisikan Form dengan ID (Hanya satu kali di layout utama Anda) --}}
+        <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
+            @csrf
+        </form>
+
+        {{-- 2. Tautan Logout --}}
+        <a class="logout" href="{{ route('logout') }}"
+        onclick="event.preventDefault(); showLogoutConfirmation();"
+        class="your-custom-class">
+
+            <ion-icon name="log-out-outline"></ion-icon>
+            {{ __('') }}
+        </a>
         <div id="user-detail">
             <div class="avatar">
                 <img src="{{asset('storage/' .Auth::user()->employee->avatar)}}" alt="avatar" class="imaged">
             </div>
             <div id="user-info">
-                {{-- <h2>{{\Carbon\Carbon::now()->format('H:i:s')}}</h2> --}}
-                <h2 id="user-name">{{Auth::user()->employee->first_name ." ". Auth::user()->employee->last_name}}</h2>
+
+                <h3 id="user-name">{{Auth::user()->employee->first_name ." ". Auth::user()->employee->last_name}}</h3>
                 <span id="user-role">{{Auth::user()->employee->position->name}}</span>
 
             </div>
@@ -228,3 +255,32 @@
         </div>
     </div>
 @endsection
+@push('scripts')
+    <script>
+        function showLogoutConfirmation() {
+            // Cek apakah SweetAlert2 sudah dimuat
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Konfirmasi Logout?',
+                    text: "Anda akan keluar dari sesi ini.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Ya, Keluar!',
+                    cancelButtonText: 'Batal'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Jika pengguna mengklik "Ya, Keluar!", submit form
+                        document.getElementById('logout-form').submit();
+                    }
+                });
+            } else {
+                // Fallback ke fungsi confirm() standar jika SweetAlert tidak terdeteksi
+                if (confirm('Apakah Anda yakin ingin keluar dari sesi ini?')) {
+                    document.getElementById('logout-form').submit();
+                }
+            }
+        }
+    </script>
+@endpush
