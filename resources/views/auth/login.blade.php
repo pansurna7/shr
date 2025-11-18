@@ -1,12 +1,12 @@
 @extends('layouts.app')
-@section('title','Edit')
+{{-- @section('title','Edit') --}}
 @section('content')
 
     <div class="row row-cols-1 row-cols-lg-2 row-cols-xl-3">
         <div class="col mx-auto">
             <div class="mb-4 text-center">
-                <img src="{{asset('assets/storage/logo/logo-login.png')}}" width="180" alt="" />
-                <img src="{{asset('assets/lo')}}" width="180" alt="" />
+                <img src="{{ asset('storage/'.$setting->logo) }}" width="70" height="70" alt="" />
+                {{-- <img src="{{asset('assets/lo')}}" width="180" alt="" /> --}}
 
             </div>
             <div class="card">

@@ -85,15 +85,5 @@
         </div>
     </form>
 
-    <form method="POST" action="{{ route('logout') }}">
-        @csrf
-        <div class="form-group boxed">
-            <div class="input-wrapper">
-                <a class="btn btn-warning btn-block" href="route('logout')" onclick="event.preventDefault();this.closest('form').submit();"><i class='bx bx-log-out-circle'></i>
-                {{ __('Log Out') }}
-                </a>
-            </div>
-        </div>
-
-    </form>
+    
 @endsection

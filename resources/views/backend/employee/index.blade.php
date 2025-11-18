@@ -58,6 +58,7 @@
                             <th scope="col" class="text-center align-middle">No.Telp</th>
                             <th scope="col" class="text-center align-middle">Foto</th>
                             <th scope="col" class="text-center align-middle">Departement</th>
+                            <th scope="col" class="text-center align-middle">Branch</th>
                             <th scope="col" class="text-center align-middle">Created</th>
                             {{-- <th scope="col" class="text-center align-middle">Updated</th> --}}
                             <th scope="col" class="text-center align-middle" style="width: 20%">Action</th>
@@ -76,6 +77,7 @@
                                         alt="Foto Profile">
                                     </td>
                                     <td class="align-middle">{{ $d->position->departement->name }}</td>
+                                    <td class="align-middle">{{ $d->branch->name }}</td>
                                     <td class="align-middle">{{ $d->created_at?->format('Y-m-d') }}</td>
                                     {{-- <td class="align-middle">{{ $d->updated_at?->format('Y-m-d') }}</td> --}}
                                     <td class="text-center align-middle">
