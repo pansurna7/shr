@@ -17,13 +17,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('password');
             $table->boolean('status')->default('true');
-            // $table->string('nik')->unique();
-            // $table->string('full_name')->nullable();
             $table->timestamp('email_verified_at')->nullable();
-            // $table->string('mobile')->nullable();
-            // $table->text('address')->nullable();
             $table->string('avatar')->nullable();
-            // $table->string('position')->nullable();
+            $table->string('thema')->default('theme1');
             $table->rememberToken();
             $table->timestamps();
         });

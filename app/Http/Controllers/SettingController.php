@@ -28,7 +28,7 @@ class SettingController extends Controller
                 {
                     Storage::disk('public')->delete($request->oldLogo);
                 }
-             }
+            }
             Settings::where('id',1)->update($validate);
             flash()->success('Sytem updated successfully');
             return redirect()->route('settings.index');

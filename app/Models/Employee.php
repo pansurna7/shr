@@ -41,4 +41,10 @@ class Employee extends Model
         return $this->hasMany(Presence::class);
     }
 
+    public function workingHour(): BelongsTo
+    {
+        // FK: working_hour_id
+        return $this->belongsTo(WorkingHours::class);
+    }
+
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BackendDashboardController;
+use App\Http\Controllers\WorkingHoursController;
 use App\Http\Controllers\BranchController;
 use App\Http\Controllers\BuilderControler;
 use App\Http\Controllers\DepartementController;
@@ -17,7 +18,7 @@ use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\FrontEnd\MonitoringController;
-
+use App\Models\WorkingHours;
 
 Route::get('/', function () {
     return view('welcome');
@@ -64,6 +65,7 @@ Route::middleware(['auth','can:users.permission'])->group(function () {
     Route::get('/users/edit/{id}',[UserController::class,'edit'])->name('users.edit');
     Route::post('/users/update/{id}',[UserController::class,'update'])->name('users.update');
     Route::post('/users/delete/{id}',[UserController::class,'delete'])->name('users.delete');
+    Route::patch('/users/{id}/theme', [UserController::class, 'updateUserTheme'])->name('users.theme.update');
 });
 
 Route::middleware(['auth','can:settings.permission'])->group(function () {
@@ -126,12 +128,15 @@ Route::middleware(['auth','can:employees.permission'])->group(function () {
     Route::get('/employee/edit/{id}',[EmployeeController::class,'edit'])->name('employee.edit');
     Route::post('/employee/update/{id}',[EmployeeController::class,'update'])->name('employee.update');
     Route::post('/employee/delete/{id}',[EmployeeController::class,'delete'])->name('employee.delete');
+    // Route::get('/employee/time/{id}',[EmployeeController::class,'setWorkingHours'])->name('employee.time');
 });
+
 Route::middleware(['auth','can:monitorings.permission'])->group(function () {
     Route::get('/monitorings',[PresensiController::class,'monitoring'])->name('monitoring.index');
     Route::post('/getpresensi',[PresensiController::class,'getpresensi']);
     Route::post('/showmap',[PresensiController::class,'showmap']);
 });
+
 Route::middleware(['auth','can:submissions.permission'])->group(function () {
     Route::get('/submissions',[PresensiController::class,'submission'])->name('submission.index');
     Route::patch('/submissions/{id}/status', [PresensiController::class, 'updateStatus'])->name('submissions.update_status');
@@ -143,6 +148,7 @@ Route::middleware(['auth','can:reportpresences.permission'])->group(function () 
     Route::post('/cetakreport',[PresensiController::class,'cetakreport'])->name('report.cetak');
 
 });
+
 Route::middleware(['auth','can:recaps.permission'])->group(function () {
     Route::get('/recaps',[PresensiController::class,'rekapPresence'])->name('rekapPresence.index');
     Route::post('/cetakrekap',[PresensiController::class,'cetakrekap'])->name('rekap.cetak');
@@ -150,7 +156,14 @@ Route::middleware(['auth','can:recaps.permission'])->group(function () {
 });
 
 
-
+Route::middleware(['auth','can:workinghours.permission'])->group(function () {
+    Route::get('/workinghours',[WorkingHoursController::class,'index'])->name('workinghour.index');
+    Route::get('/workinghour/create',[WorkingHoursController::class,'create'])->name('workinghour.create');
+    Route::post('/workinghour/store',[WorkingHoursController::class,'store'])->name('workinghour.store');
+    Route::post('/workinghour/edit',[WorkingHoursController::class,'edit'])->name('workinghour.edit');
+    Route::put('/workinghour/update/{id}',[WorkingHoursController::class,'update'])->name('workinghour.update');
+    Route::post('/workinghour/delete/{id}',[WorkingHoursController::class,'delete'])->name('workinghour.delete');
+});
 
 
 

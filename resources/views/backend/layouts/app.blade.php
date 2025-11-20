@@ -49,7 +49,7 @@
     @stack('css')
 </head>
 
-<body class="bg-theme bg-theme1">
+<body class="bg-theme bg-{{Auth::user()->theme}}">
 	<!--wrapper-->
 	<div class="wrapper">
 		<!--sidebar wrapper -->
@@ -88,31 +88,31 @@
 			</div>
 			<hr/>
 			<p class="mb-0">Gaussian Texture</p>
-			  <hr>
+            <hr>
 
-			  <ul class="switcher">
-				<li id="theme1"></li>
-				<li id="theme2"></li>
-				<li id="theme3"></li>
-				<li id="theme4"></li>
-				<li id="theme5"></li>
-				<li id="theme6"></li>
-			  </ul>
-               <hr>
-			  <p class="mb-0">Gradient Background</p>
-			  <hr>
+            <ul class="switcher">
+            <li id="theme1" class="theme-selector"></li>
+            <li id="theme2" class="theme-selector"></li>
+            <li id="theme3" class="theme-selector"></li>
+            <li id="theme4" class="theme-selector"></li>
+            <li id="theme5" class="theme-selector"></li>
+            <li id="theme6" class="theme-selector"></li>
+            </ul>
+            <hr>
+            <p class="mb-0">Gradient Background</p>
+            <hr>
 
-			  <ul class="switcher">
-				<li id="theme7"></li>
-				<li id="theme8"></li>
-				<li id="theme9"></li>
-				<li id="theme10"></li>
-				<li id="theme11"></li>
-				<li id="theme12"></li>
-				<li id="theme13"></li>
-				<li id="theme14"></li>
-				<li id="theme15"></li>
-			  </ul>
+            <ul class="switcher">
+                <li id="theme7" class="theme-selector"></li>
+                <li id="theme8" class="theme-selector"></li>
+                <li id="theme9" class="theme-selector"></li>
+                <li id="theme10" class="theme-selector"></li>
+                <li id="theme11" class="theme-selector"></li>
+                <li id="theme12" class="theme-selector"></li>
+                <li id="theme13" class="theme-selector"></li>
+                <li id="theme14" class="theme-selector"></li>
+                <li id="theme15" class="theme-selector"></li>
+            </ul>
 		</div>
 	</div>
 	<!--end switcher-->
@@ -147,12 +147,12 @@
     </script>
 
 	<script src="{{ asset('assets/plugins/jquery-knob/jquery.knob.js') }}"></script>
-	  <script>
-		  $(function() {
-			  $(".knob").knob();
-		  });
-	  </script>
-	  <script src="{{ asset('assets/js/index.js') }}"></script>
+    <script>
+        $(function() {
+            $(".knob").knob();
+        });
+    </script>
+    <script src="{{ asset('assets/js/index.js') }}"></script>
 	<!--app JS-->
 	<script src="{{ asset('assets/js/app.js') }}"></script>
 
@@ -161,6 +161,51 @@
     <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
     {{-- Date Picker --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+
+    {{-- script untuk menyimpan thema --}}
+    <script>
+        $(document).ready(function() {
+            // Tangani klik pada setiap item tema
+            $('.theme-selector').on('click', function() {
+
+                // Ambil ID dari elemen <li> yang diklik (misalnya "theme1" atau "theme10")
+                var selectedTheme = $(this).attr('id');
+
+                // Opsional: Lakukan perubahan tampilan langsung di frontend
+                $('body').removeClass(function (index, className) {
+                    return (className.match (/(^|\s)theme\S+/g) || []).join(' ');
+                }).addClass(selectedTheme);
+                // Anda mungkin memiliki logika yang berbeda di sini untuk mengubah CSS
+
+                // Kirim data ke Controller Laravel
+                saveThemePreference(selectedTheme);
+            });
+        });
+
+        function saveThemePreference(themeId) {
+            $.ajax({
+                type: "PATCH",
+                url: "{{ route('users.theme.update', ['id' => Auth::user()->id]) }}", // Pastikan rute sudah dibuat
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    theme: themeId // Kirim nilai 'theme1', 'theme2', dst.
+                },
+                dataType: 'json',
+                success: function(response) {
+                    // Beri notifikasi sukses kepada pengguna
+                    console.log(response.message);
+                    // Swal.fire('Berhasil!', response.message, 'success');
+                },
+                error: function(xhr) {
+                    // Tangani error
+                    console.error("Gagal menyimpan tema:", xhr.responseText);
+                    // Swal.fire('Gagal!', 'Tema gagal disimpan.', 'error');
+                }
+            });
+        }
+    </script>
+    {{-- end  script untuk menyimpan thema --}}
     @stack('scripts')
 </body>
 

@@ -28,7 +28,6 @@
     </ul>
 
     <div class="tab-content">
-
         <div id="step-1" class="tab-pane" role="tabpanel">
             <h3>1: Data Personal</h3>
             <label for="nKtp" class="form-label">No. KTP</label>
@@ -181,112 +180,290 @@
         </div>
 
         <div id="step-2" class="tab-pane" role="tabpanel">
-            <h3>Data Pekerjaan</h3>
-            <div class="mb-3">
-                <div class="col-md-6">
-                    <label for="nik" class="form-label">Nik</label>
-                    <input type="text" class="form-control" name="nik" id="nik" value="{{ old('nik', $employee->nik ?? '') }}">
-                </div>
-            </div>
-            <div class="mb-3">
-                <label for="position" class="form-label">Jabatan</label>
-                <div class="col-md-6">
-                    <select id="jabatan" name="jabatan" class="form-select" required>
-                        <option value="">-- Pilih Jabatan --</option>
-                        @foreach($positions as $d )
-                            @php
-                                // Tentukan nilai ID yang harus diperiksa:
-                                // 1. Prioritaskan nilai 'old' jika ada (setelah validasi gagal).
-                                // 2. Jika tidak, gunakan ID posisi dari data $employee lama.
-                                // 3. Gunakan operator Null Coalescing (?? '') untuk menghindari error jika $employee null.
-                                $selectedId = old('jabatan', $employee->position_id ?? '');
-                            @endphp
-                            <option value="{{ $d->id }}"
-                                    {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                {{ $d->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label for="position" class="form-label">Branch</label>
-                <div class="col-md-6">
-                    <select id="branch" name="branch" class="form-select" required>
-                    <option value="">-- Pilih Branch --</option>
-                        @foreach($branchs as $d )
-                            @php
-                                // Tentukan nilai ID yang harus diperiksa:
-                                // 1. Prioritaskan nilai 'old' jika ada (setelah validasi gagal).
-                                // 2. Jika tidak, gunakan ID posisi dari data $employee lama.
-                                // 3. Gunakan operator Null Coalescing (?? '') untuk menghindari error jika $employee null.
-                                $selectedId = old('branch', $employee->branch_id ?? '');
-                            @endphp
-                            <option value="{{ $d->id }}"
-                                    {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                {{ $d->name }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
+            <div class="row">
+                <div class="col-6">
+                    <h3>Data Pekerjaan</h3>
 
-            <div class="mb-3">
-                <label for="tglKontrak" class="form-label">Tanggal Pengangkatan</label>
-                <div class="col-md-6">
-                    <div class="input-group date" id="datepicker">
-                        <input type="text"
-                            class="form-control"
-                            id="tglKontrak"
-                            name="tglKontrak"
-                            value="{{ old('tglKontrak',$employee->tanggal_diangkat ?? '') }}"
-                            placeholder="YYYY-MM-DD"
-                            autocomplete="off"
-                            required>
-                        <span class="input-group-text">
-                            <i class="bx bx-calendar"></i>
-                        </span>
+                    <div class="mb-3">
+                        <label for="nik" class="form-label">Nik</label>
+                        <input type="text" class="form-control" name="nik" id="nik" value="{{ old('nik', $employee->nik ?? '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="position" class="form-label">Jabatan</label>
+                        <select id="jabatan" name="jabatan" class="form-select" required>
+                            <option value="">-- Pilih Jabatan --</option>
+                            @foreach($positions as $d )
+                                @php
+                                    // Tentukan nilai ID yang harus diperiksa:
+                                    // 1. Prioritaskan nilai 'old' jika ada (setelah validasi gagal).
+                                    // 2. Jika tidak, gunakan ID posisi dari data $employee lama.
+                                    // 3. Gunakan operator Null Coalescing (?? '') untuk menghindari error jika $employee null.
+                                    $selectedId = old('jabatan', $employee->position_id ?? '');
+                                @endphp
+                                <option value="{{ $d->id }}"
+                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                    {{ $d->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="branch" class="form-label">Branch</label>
+                        <select id="branch" name="branch" class="form-select" required>
+                            <option value="">-- Pilih Branch --</option>
+                            @foreach($branchs as $d )
+                                @php
+                                    // Tentukan nilai ID yang harus diperiksa:
+                                    // 1. Prioritaskan nilai 'old' jika ada (setelah validasi gagal).
+                                    // 2. Jika tidak, gunakan ID posisi dari data $employee lama.
+                                    // 3. Gunakan operator Null Coalescing (?? '') untuk menghindari error jika $employee null.
+                                    $selectedId = old('branch', $employee->branch_id ?? '');
+                                @endphp
+                                <option value="{{ $d->id }}"
+                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                    {{ $d->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tglKontrak" class="form-label">Tanggal Pengangkatan</label>
+                        <div class="input-group date" id="datepicker">
+                            <input type="text"
+                                class="form-control"
+                                id="tglKontrak"
+                                name="tglKontrak"
+                                value="{{ old('tglKontrak',$employee->tanggal_diangkat ?? '') }}"
+                                placeholder="YYYY-MM-DD"
+                                autocomplete="off"
+                                required>
+                            <span class="input-group-text">
+                                <i class="bx bx-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tanggal_resign" class="form-label">Tanggal Resign</label>
+                        <div class="input-group date" id="datepicker">
+                            <input type="text"
+                                class="form-control"
+                                id="tglResign"
+                                name="tglResign"
+                                value="{{ old('tglKontrak',$employee->tanggal_keluar ?? '') }}"
+                                placeholder="YYYY-MM-DD"
+                                autocomplete="off">
+                            <span class="input-group-text">
+                                <i class="bx bx-calendar"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="gapok" class="form-label">Gaji Pokok</label>
+                        <input type="text" class="form-control" name="gapok"  value="{{ old('gapok',$employee->gaji_pokok ?? '') }}" id="gapok" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="nRek" class="form-label">No. Rekening</label>
+                        <input type="text" class="form-control" name="nRek"  id="nRek"  value="{{ old('nRek',$employee->nomor_rekening ?? '') }}" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pRek" class="form-label">Nama Pemilik Rekening</label>
+                        <input type="text" class="form-control" name="pRek" id="pRek"  value="{{ old('pRek',$employee->rekening_atas_nama ?? '') }}" />
                     </div>
                 </div>
+                <div class="col-6">
+                    <h3>Setting Jam Kerja</h3>
+                    <table class="table table-responsive table-borderless">
+                            <thead>
+                                <tr>
+                                    <th>HARI</th>
+                                    <th class="text-center">JAM KERJA</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{-- Asumsi Anda mengulangi baris ini untuk 7 hari, kita ambil contoh Senin --}}
+                                <tr>
+                                    <td class="align-middle">
+                                        Senin
+                                        <input type="hidden" name="day[]" value="Senin">
+                                    </td>
+                                    <td>
+                                        <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
 
-            </div>
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Senin'] ?? null;
+                                            @endphp
 
-            <div class="mb-3">
-                <label for="tanggal_resign" class="form-label">Tanggal Resign</label>
-                <div class="col-md-6">
-                    <div class="input-group date" id="datepicker">
-                        <input type="text"
-                            class="form-control"
-                            id="tglResign"
-                            name="tglResign"
-                             value="{{ old('tglKontrak',$employee->tanggal_keluar ?? '') }}"
-                            placeholder="YYYY-MM-DD"
-                            autocomplete="off">
-                        <span class="input-group-text">
-                            <i class="bx bx-calendar"></i>
-                        </span>
-                    </div>
-                </div>
-            </div>
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
 
-            <div class="mb-3">
-                <div class="col-md-6">
-                    <label for="gapok" class="form-label">Gaji Pokok</label>
-                    <input type="text" class="form-control" name="gapok"  value="{{ old('gapok',$employee->gaji_pokok ?? '') }}" id="gapok" />
-                </div>
-            </div>
+                                <tr>
+                                    <td class="align-middle">
+                                        Selasa
+                                        <input type="hidden" name="day[]" value="Selasa">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
 
-            <div class="mb-3">
-                <div class="col-md-6">
-                    <label for="nRek" class="form-label">No. Rekening</label>
-                    <input type="text" class="form-control" name="nRek"  id="nRek"  value="{{ old('nRek',$employee->nomor_rekening ?? '') }}" />
-                </div>
-            </div>
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Selasa'] ?? null;
+                                            @endphp
 
-            <div class="mb-3">
-                <div class="col-md-6">
-                    <label for="pRek" class="form-label">Nama Pemilik Rekening</label>
-                    <input type="text" class="form-control" name="pRek" id="pRek"  value="{{ old('pRek',$employee->rekening_atas_nama ?? '') }}" />
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle">
+                                        Rabu
+                                        <input type="hidden" name="day[]" value="Rabu">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
+
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Rabu'] ?? null;
+                                            @endphp
+
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle">
+                                        Kamis
+                                        <input type="hidden" name="day[]" value="Kamis">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
+
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Kamis'] ?? null;
+                                            @endphp
+
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle">
+                                        Jumat
+                                        <input type="hidden" name="day[]" value="Jumat">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
+
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Jumat'] ?? null;
+                                            @endphp
+
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle">
+                                        Sabtu
+                                        <input type="hidden" name="day[]" value="Sabtu">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
+
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Sabtu'] ?? null;
+                                            @endphp
+
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="align-middle">
+                                        Minggu
+                                        <input type="hidden" name="day[]" value="Minggu">
+                                    </td>
+                                    <td>
+                                         <select name="idwk[]" id="idwk" class="form-select" required>
+                                            <option value="">Pilih Jam Kerja</option>
+
+                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
+                                            @php
+                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
+                                                $selectedId = $workingdays['Minggu'] ?? null;
+                                            @endphp
+
+                                            @foreach($workinghours as $d )
+                                                <option value="{{ $d->id }}"
+                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
+                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
+                                                    {{ $d->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                 </div>
             </div>
         </div>

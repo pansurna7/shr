@@ -136,4 +136,28 @@ class UserController extends Controller
             return redirect()->back();
         }
     }
+
+public function updateUserTheme(Request $request, $id)
+{
+    // 1. Validasi Input Tema
+    $request->validate([
+        // Pastikan tema yang diterima valid (misalnya: light, dark, atau theme1-theme15)
+        'theme' => [ 'string', 'regex:/^theme[0-9]+$/'],
+    ]);
+
+    // 2. Ambil User Berdasarkan ID
+    // findOrFail akan menghentikan eksekusi dan melempar 404 jika user tidak ditemukan
+    $user = User::findOrFail($id);
+
+    // 3. Update Kolom 'theme'
+    $user->theme = $request->theme;
+    $user->save();
+
+    // 4. Kembalikan Response
+    return response()->json([
+        'success' => true,
+        'message' => "Tema untuk user ID {$id} berhasil diperbarui menjadi {$request->theme}."
+    ]);
 }
+}
+

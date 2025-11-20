@@ -87,6 +87,12 @@
                                                 Edit
                                             </a>
                                         @endcan
+                                        {{-- @can('employee.edit')
+                                            <a href="{{ route('employee.time', $d->id)}}" class="btn btn-sm btn-info">
+                                                <i class="bx bx-timer" data-toggle="tooltip" data-placement="top" title="time"></i>
+                                                Set Time
+                                            </a>
+                                        @endcan --}}
 
                                         <form id="delete-form-{{ $d->id }}" action="{{ route('employee.delete', $d->id) }}" method="POST" style="display: none;">
                                             @csrf

@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\Presence;
 use App\Models\Submission;
+use App\Models\WorkingDay;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+
+use function Flasher\Prime\flash;
 
 class PresensiController extends Controller
 {
@@ -22,7 +25,13 @@ class PresensiController extends Controller
         $branch_id = Auth::user()->employee->branch_id;
         $cek = DB::table('presences')->where('date',$today)->where('employee_id',$nik)->count();
         $office_location = Branch::where('id',$branch_id)->first();
-        return view('frontend.presensi.create',compact('cek','office_location'));
+        $cekjamkerja= WorkingDay::where('employee_id', $nik)->count();
+        if($cekjamkerja > 0){
+            return view('frontend.presensi.create',compact('cek','office_location'));
+        }else{
+            flash()->options(['zIndex' => 9999, 'timeout' =>10000])->warning('Jam Kerja Anda Belum Disetting Hubungi HRD');
+            return redirect()->route('frontend.dashboards');
+        }
     }
 
     //Menghitung Jarak titik koordinat
