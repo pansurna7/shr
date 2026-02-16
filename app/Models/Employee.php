@@ -47,4 +47,16 @@ class Employee extends Model
         return $this->belongsTo(WorkingHours::class);
     }
 
+    public function workingDays(): HasMany
+    {
+        // Karyawan (satu) memiliki banyak (many) entri hari kerja/jadwal.
+        return $this->hasMany(WorkingDay::class, 'employee_id');
+    }
+
+    // Relasi Many-to-Many ke Locations
+    public function assigned_locations()
+    {
+        return $this->belongsToMany(Location::class, 'employee_location');
+    }
+
 }

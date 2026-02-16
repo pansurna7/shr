@@ -10,8 +10,8 @@ class WorkingDay extends Model
 {
     protected $guarded = ['id'];
 
-    public function workinghours():BelongsToMany
+    public function workinghours()
     {
-        return $this->belongsToMany(WorkingHours::class);
+        return $this->belongsTo(WorkingHours::class, 'workinghour_id');
     }
 }

@@ -61,14 +61,15 @@
                             <th scope="col" class="text-center align-middle">#</th>
                             <th scope="col" class="text-center align-middle">Tanggal</th>
                             <th scope="col" class="text-center align-middle">Nama</th>
-                            <th scope="col" class="text-center align-middle">Jabatan</th>
-                            <th scope="col" class="text-center align-middle">Departement</th>
+                            
+                            <th scope="col" class="text-center align-middle">Dep</th>
+                            <th scope="col" class="text-center align-middle">Tipe</th>
                             <th scope="col" class="text-center align-middle">IN</th>
                             <th scope="col" class="text-center align-middle">Foto</th>
                             <th scope="col" class="text-center align-middle">OUT</th>
                             <th scope="col" class="text-center align-middle">Foto</th>
                             <th scope="col" class="text-center align-middle">Status</th>
-                            <th scope="col" class="text-center align-middle"></th>
+                            <th scope="col" class="text-center align-middle">Lok</th>
 
                         </tr>
                     </thead>

@@ -290,8 +290,8 @@
                                 $is_present = false; // Status hadir/absen
                                 $cell_class = '';
 
-                                $jam_masuk_standar = '07:00:00';
-                                $jam_pulang_standar = '14:00:00';
+                                $jam_masuk_standar = $d->entry_time;
+                                $jam_pulang_standar = $d->out_time;
 
                                 $time_in_full = '';
                                 $time_out_full = '';

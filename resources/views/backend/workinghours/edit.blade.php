@@ -17,7 +17,7 @@
         <div class="col-sm-9">
             <div class="col-md-9">
                 {{-- ✅ Isi nilai awal dari database, format ke H:i:s --}}
-                <input type="text" class="form-control time" id="awaljm" name="awaljm"
+                <input type="text" class="form-control time" id="start_time" name="start_time"
                     value="{{ $workinghour->start_time ? \Carbon\Carbon::parse($workinghour->start_time)->format('H:i:s') : '' }}"
                     required>
             </div>

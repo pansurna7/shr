@@ -1,293 +1,400 @@
 @extends('frontend.layout.app')
 @section('title', 'Dashboard')
+
 @push('css')
-    <style>
-        .imaged {
-            width: 70px; /* Example width */
-            height: 70px; /* Example height, must match width for a perfect circle */
-            border-radius: 50%;
-            object-fit: cover; /* Optional: ensures the image covers the entire circular area without distortion */
-        }
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css">
+<style>
+    /* Menghilangkan border default slider agar bersih */
+    .splide__track { padding: 5px 0; }
+    .splide__pagination { bottom: -15px; }
+    .splide__pagination__page.is-active { background: #1e3a8a; }
+    #user-section {
+        background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+        /* Padding bawah disesuaikan karena card menu sudah tidak ada */
+        padding: 45px 20px 60px 20px;
+        border-bottom-left-radius: 40px;
+        border-bottom-right-radius: 40px;
+        position: relative;
+        color: white;
+        z-index: 1;
+    }
+    .avatar-img {
+        width: 65px;
+        height: 65px;
+        border-radius: 50%;
+        border: 2px solid rgba(255,255,255,0.4);
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .ms-3 {
+        margin-left: 1rem !important;
+        max-width: 70%;
+    }
+    .avatar-wrapper {
+        flex-shrink: 0;
+    }
+    .bg-opacity-20 {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        backdrop-filter: blur(4px);
+    }
+    .logout { position: absolute; top: 40px; right: 20px; font-size: 25px; color: white; }
 
-        .logout{
-            position    : absolute;
-            color       : white;
-            font-size   : 25px;
-            right       : 8px;
-            margin-top  : 35px;
+    /* Rekap Styling ditingkatkan karena sekarang menjadi fokus utama */
+    .rekap-section {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: -30px; /* Membuat rekap sedikit naik menimpa area biru */
+        z-index: 2;
+        position: relative;
+    }
+    .rekap-item {
+        flex: 1;
+        background: #fff;
+        padding: 12px 5px;
+        border-radius: 18px;
+        text-align: center;
+        position: relative;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
+    }
+    .rekap-item .count {
+        position: absolute;
+        top: -8px;
+        right: -5px;
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: bold;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+    }
+    .rekap-item ion-icon {
+        font-size: 22px;
+        margin-bottom: 2px;
+    }
+    .rekap-item span {
+        font-size: 10px;
+        color: #64748b;
+        display: block;
+        font-weight: 600;
+    }
 
-        }
-        /* Kelas untuk menonaktifkan efek hover (misalnya saat tombol sudah tidak aktif) */
-        .logout:hover {
-            color: white !important; /* Ganti dengan warna teks link default Anda */
-            cursor: default;       /* Mengubah kursor agar tidak terlihat bisa diklik */
-        }
-        #user-branch{
-            position: relative;
-            display: block;
-            margin-top: 15px;
-            color: white
+    /* Announcement & Presence */
+    .announcement-box {
+        background: #fff9db;
+        border-left: 5px solid #fcc419;
+        border-radius: 15px;
+    }
+    .announcement-list {
+        max-height: 250px; /* Batasi tinggi maksimal */
+        overflow-y: auto;  /* Aktifkan scroll vertikal */
+        scrollbar-width: none; /* Sembunyikan scrollbar di Firefox */
+    }
+    .announcement-list::-webkit-scrollbar {
+        display: none; /* Sembunyikan scrollbar di Chrome/Safari */
+    }
+    .presence-img {
+        width: 45px; height: 45px;
+        border-radius: 10px;
+        object-fit: cover;
+        border: 2px solid white;
+        margin-bottom: 5px;
+    }
+    .rounded-xl { border-radius: 20px !important; }
 
-        }
-    </style>
+</style>
 @endpush
+
 @section('content')
-    <div class="section" id="user-section">
-                {{-- 1. Definisikan Form dengan ID (Hanya satu kali di layout utama Anda) --}}
-        <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">
-            @csrf
-        </form>
-
-        {{-- 2. Tautan Logout --}}
-        <a class="logout" href="{{ route('logout') }}"
-        onclick="event.preventDefault(); showLogoutConfirmation();"
-        class="your-custom-class">
-
-            <ion-icon name="log-out-outline"></ion-icon>
-            {{ __('') }}
-        </a>
-        <div id="user-detail">
-            <div class="avatar">
-                <img src="{{asset('storage/' .Auth::user()->employee->avatar)}}" alt="avatar" class="imaged">
-            </div>
-            <div id="user-info">
-                <h3 id="user-name">{{Auth::user()->employee->first_name ." ". Auth::user()->employee->last_name}}</h3>
-                <span id="user-role">{{Auth::user()->employee->position->name}}</span>
-                <span id="user-branch">{{Auth::user()->employee->branch->name}}</span>
-            </div>
-
-        </div>
+<div class="section" id="user-section">
+    <form id="logout-form" method="POST" action="{{ route('logout') }}" style="display: none;">@csrf</form>
+    <a class="logout" href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+        <ion-icon name="log-out-outline"></ion-icon>
+    </a>
+    <div class="d-flex align-items-center">
+    <div class="avatar-wrapper">
+        <img src="{{ Auth::user()->employee->avatar ? asset('storage/'.Auth::user()->employee->avatar) : asset('assets/img/avatar.png') }}"
+             class="avatar-img shadow-sm">
     </div>
 
-    <div class="section" id="menu-section">
-        <div class="card">
-            <div class="card-body text-center">
-                <div class="list-menu">
-                    <div class="item-menu text-center">
-                        <div class="menu-icon">
-                            <a href="{{route('edit.profile')}}" class="green" style="font-size: 40px;">
-                                <ion-icon name="person-sharp"></ion-icon>
-                            </a>
-                        </div>
-                        <div class="menu-name">
-                            <span class="text-center">Profil</span>
-                        </div>
-                    </div>
-                    <div class="item-menu text-center">
-                        <div class="menu-icon">
-                            <a href="{{route(('presensi.izin'))}}" class="danger" style="font-size: 40px;">
-                                <ion-icon name="calendar-number"></ion-icon>
-                            </a>
-                        </div>
-                        <div class="menu-name">
-                            <span class="text-center">Cuti</span>
-                        </div>
-                    </div>
-                    <div class="item-menu text-center">
-                        <div class="menu-icon">
-                            <a href="{{route('presensi.history')}}" class="warning" style="font-size: 40px;">
-                                <ion-icon name="document-text"></ion-icon>
-                            </a>
-                        </div>
-                        <div class="menu-name">
-                            <span class="text-center">Histori</span>
-                        </div>
-                    </div>
-                    <div class="item-menu text-center">
-                        <div class="menu-icon">
-                            <a href="" class="orange" style="font-size: 40px;">
-                                <ion-icon name="location"></ion-icon>
-                            </a>
-                        </div>
-                        <div class="menu-name">
-                            Lokasi
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="ms-3 d-flex flex-column justify-content-center">
+        <h3 class="m-0 fw-bold text-white" style="font-size: 1.1rem; line-height: 1.2; letter-spacing: 0.3px;">
+            {{ Auth::user()->employee->first_name .' ' . Auth::user()->employee->last_name }}
+        </h3>
+
+        <div class="text-white-50 fw-medium" style="font-size: 0.85rem; line-height: 1.4;">
+            {{ Auth::user()->employee->position->name ?? 'Staff' }}
+        </div>
+
+        <div class="mt-1">
+            <span class="badge bg-white bg-opacity-20 text-white fw-light shadow-none d-inline-flex align-items-center"
+                  style="font-size: 0.7rem; padding: 4px 10px; border-radius: 12px; backdrop-filter: blur(4px);">
+                <ion-icon name="location-outline" class="me-1"></ion-icon>
+                {{ Auth::user()->employee->branch->name ?? 'Pusat' }}
+            </span>
         </div>
     </div>
-    <div class="section mt-2" id="presence-section">
-        <div class="todaypresence">
-            <div class="row">
-                <div class="col-6">
-                    <div class="card gradasigreen">
-                        <div class="card-body">
-                            <div class="presencecontent">
-                                <div class="iconpresence">
-                                    @if ($presensi_today != null)
-                                        @php
-                                            $path_image = Storage :: url('absensi/'.$presensi_today->photo_in)
-                                        @endphp
-                                        <img src="{{ url($path_image) }}" alt="" class="imaged w64">
-                                    @else
-                                        <ion-icon name="camera"></ion-icon>
-                                    @endif
-                                </div>
-                                <div class="presencedetail">
-                                    <h4 class="presencetitle">Masuk</h4>
-                                    <span>{{$presensi_today != null ? \Carbon\Carbon::parse($presensi_today->time_in)->format('H:i'): "Belum Absen"}}</span>
-                                </div>
-                            </div>
+</div>
+</div>
+
+
+
+<div class="section mt-2 px-2">
+    <div class="rekap-section">
+        <div class="rekap-item shadow-sm">
+            <span class="count" style="background: #10b981;">{{ $rekap_presensi ?? 0 }}</span>
+            <ion-icon name="checkmark-circle" class="text-success"></ion-icon>
+            <span>Hadir</span>
+        </div>
+        <div class="rekap-item shadow-sm">
+            <span class="count" style="background: #3b82f6;">{{ $rekap_izin->jml_izin ?? 0 }}</span>
+            <ion-icon name="document-text" class="text-primary"></ion-icon>
+            <span>Izin</span>
+        </div>
+        <div class="rekap-item shadow-sm">
+            <span class="count" style="background: #f59e0b;">{{ $rekap_izin->jml_sakit ?? 0 }}</span>
+            <ion-icon name="medkit" class="text-warning"></ion-icon>
+            <span>Sakit</span>
+        </div>
+        <div class="rekap-item shadow-sm">
+            <span class="count" style="background: #ef4444;">{{ $rekap_izin->jml_cuti ?? 0 }}</span>
+            <ion-icon name="calendar-clear" class="text-danger"></ion-icon>
+            <span>Cuti</span>
+        </div>
+    </div>
+</div>
+
+
+<div class="section mt-2 px-2">
+    <div class="row g-2">
+        <div class="col-6">
+            <div class="card bg-success text-white presence-card py-3 shadow-sm">
+                <div class="card-body p-0 text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="presence-img-container d-flex align-items-center justify-content-center mb-1" style="width: 50px; height: 50px;">
+                            @if($presensi_today && $presensi_today->photo_in)
+                                <img src="{{ asset('storage/absensi/'.$presensi_today->photo_in) }}" class="presence-img m-0">
+                            @else
+                                <ion-icon name="camera-outline" style="font-size: 32px;"></ion-icon>
+                            @endif
                         </div>
-                    </div>
-                </div>
-                <div class="col-6">
-                    <div class="card gradasired">
-                        <div class="card-body">
-                            <div class="presencecontent">
-                                <div class="iconpresence">
-                                    @if ($presensi_today != null && $presensi_today->photo_out != null)
-                                        @php
-                                            $path_image = Storage :: url('absensi/'.$presensi_today->photo_out)
-                                        @endphp
-                                        <img src="{{ url($path_image) }}" alt="" class="imaged w64">
-                                    @else
-                                        <ion-icon name="camera"></ion-icon>
-                                    @endif
-                                </div>
-                                <div class="presencedetail">
-                                    <h4 class="presencetitle">Pulang</h4>
-                                    <span>{{$presensi_today != null && $presensi_today->time_out != null ? \Carbon\Carbon::parse($presensi_today->time_out)->format('H:i') : 'Belum Absen'}}</span>
-                                </div>
-                            </div>
+
+                        <div class="d-flex align-items-center justify-content-center mt-1" style="gap: 4px;">
+                            <small class="opacity-75" style="font-size: 11px;">Masuk:</small>
+                            <span class="fw-bold" style="font-size: 15px;">
+                                {{ $presensi_today ? date('H:i', strtotime($presensi_today->time_in)) : '--:--' }}
+                            </span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="rekappresence">
-            <h4 class="text-center">Rekap Presensi Bulan {{$nama_bulan[$month]}} Tahun {{$year}}</h4>
-                <div class="row">
-                    <div class="col-3">
-                        <div class="card">
-                            <div class="card-body text-center" style="padding: 12px 12px !important;line-height:0.8rem">
-                                <span class="badge bg-danger" style="position: absolute;top:3px;right:5px;font-size:0.6rem;z-index:999;">{{ $rekap_presensi->jml_hadir }}</span>
-                                <ion-icon name="accessibility-outline" style="font-size: 1.5rem" class="text-primary mb-1"></ion-icon>
-                                <br>
-                                <span style="font-size: 0.8rem; font-weight:500; ">Hadir</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="card">
-                            <div class="card-body text-center" style="padding: 12px 12px !important;line-height:0.8rem;">
-                                <span class="badge bg-danger" style="position: absolute;top:3px;right:5px;font-size:0.6rem;z-index:999;">{{$rekap_izin->jml_izin}}</span>
-                                <ion-icon name="newspaper-outline" style="font-size: 1.5rem" class="text-success mb-1"></ion-icon>
-                                <br>
-                                <span style="font-size: 0.8rem; font-weight:500; ">Izin</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="card">
-                            <div class="card-body text-center" style="padding: 12px 12px !important;line-height:0.8rem">
-                                <span class="badge bg-danger" style="position: absolute;top:3px;right:5px;font-size:0.6rem;z-index:999;">{{$rekap_izin->jml_sakit}}</span>
-                                <ion-icon name="medkit-outline" style="font-size: 1.5rem" class="text-warning mb-1"></ion-icon>
-                                <br>
-                                <span style="font-size: 0.8rem; font-weight:500; ">Sakit</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-3">
-                        <div class="card">
-                            <div class="card-body text-center" style="padding: 12px 12px !important;line-height:0.8rem">
-                                <span class="badge bg-danger" style="position: absolute;top:3px;right:5px;font-size:0.6rem;z-index:999;">{{ $rekap_presensi->jml_telat }}</span>
-                                <ion-icon name="alarm-outline" style="font-size: 1.5rem" class="text-danger mb-1"></ion-icon>
-                                <br>
-                                <span style="font-size: 0.8rem; font-weight:500; ">Telat</span>
-                            </div>
-                        </div>
-                    </div>
 
+        <div class="col-6">
+            <div class="card bg-danger text-white presence-card py-3 shadow-sm">
+                <div class="card-body p-0 text-center">
+                    <div class="d-flex flex-column align-items-center justify-content-center">
+                        <div class="presence-img-container d-flex align-items-center justify-content-center mb-1" style="width: 50px; height: 50px;">
+                            @if($presensi_today && $presensi_today->photo_out)
+                                <img src="{{ asset('storage/absensi/'.$presensi_today->photo_out) }}" class="presence-img m-0">
+                            @else
+                                <ion-icon name="camera-outline" style="font-size: 32px;"></ion-icon>
+                            @endif
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-center mt-1" style="gap: 4px;">
+                            <small class="opacity-75" style="font-size: 11px;">Pulang:</small>
+                            <span class="fw-bold" style="font-size: 15px;">
+                                {{ ($presensi_today && $presensi_today->time_out) ? date('H:i', strtotime($presensi_today->time_out)) : '--:--' }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
-        </div>
-
-        <div class="presencetab mt-2">
-            <div class="tab-pane fade show active" id="pilled" role="tabpanel">
-                <ul class="nav nav-tabs style1" role="tablist">
-                    <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#home" role="tab">
-                            Bulan Ini
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#profile" role="tab">
-                            Leaderboard
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="tab-content mt-2" style="margin-bottom:100px;">
-                <div class="tab-pane fade show active" id="home" role="tabpanel">
-                    <ul class="listview image-listview">
-                        @foreach ($history_on_mount as $item )
-                            <li>
-                                <div class="item">
-                                    <div class="icon-box bg-primary">
-                                        <ion-icon name="finger-print-outline"></ion-icon>
-                                    </div>
-                                    <div class="in">
-                                        <div>{{ date("d-m-Y",strtotime($item->date)) }}</div>
-                                        <span class="badge badge-success">{{date("H:i:s",strtotime($item->time_in))}}</span>
-                                        <span class="badge badge-danger">{{$item->time_out != Null ? \Carbon\carbon::parse($item->time_out)->format('H:i:s') : 'Belum Absen'}}</span>
-                                    </div>
-
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-                <div class="tab-pane fade" id="profile" role="tabpanel">
-                    <ul class="listview image-listview">
-                        @foreach ($leader_board as $data )
-                            <li>
-                                <div class="item">
-                                    <img src="{{asset('storage/' .$data->avatar)}}" alt="image" class="image">
-                                    <div class="in">
-                                        <div>
-                                            <b>{{ $data->first_name }}</b><br>
-                                            <small class="text-muted">{{ $data->position_name }}</small>
-                                        </div>
-                                        <span class="badge {{ $data->time_in != null || $data->date != null ? "bg-success" : "bg-danger"}}">{{$data->time_in != null ? "Hadir" : "Absen"}}</span>
-
-                                    </div>
-                                </div>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-
             </div>
         </div>
     </div>
+</div>
+
+<div class="section mt-3 px-2">
+    <div id="announcement-slider" class="splide">
+        <div class="splide__track">
+            <div class="splide__list">
+                @forelse($announcements as $info)
+                <div class="splide__slide">
+                    <div class="card announcement-box border-0 shadow-sm mx-1">
+                        <div class="card-body p-2">
+                            <div class="d-flex">
+                                <ion-icon name="megaphone" class="text-warning me-2" style="font-size: 20px;"></ion-icon>
+                                <div class="w-100">
+                                    <div class="d-flex justify-content-between">
+                                        <small class="fw-bold">{{ $info->title }}</small>
+                                        <small class="text-muted" style="font-size: 9px;">{{ date('d M', strtotime($info->created_at)) }}</small>
+                                    </div>
+
+                                    <p class="m-0" style="font-size: 11px; color: #555; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                        {{ $info->content }}
+                                    </p>
+
+                                    <div class="d-flex justify-content-between align-items-center mt-1">
+                                        <a href="javascript:void(0);"
+   class="text-primary fw-bold btn-read-more"
+   style="font-size: 10px;"
+   data-toggle="modal"
+   data-target="#modalAnnouncement"
+   data-title="{{ $info->title }}"
+   data-content="{{ $info->content }}">
+   Read More...
+</a>
+                                        @if($info->file_name)
+                                        <a href="{{ route('download.announcement', $info->file_name) }}" class="btn btn-sm btn-primary rounded-pill" style="font-size: 9px; padding: 2px 8px;">
+                                            <ion-icon name="download-outline"></ion-icon> Download
+                                        </a>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @empty
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAnnouncement" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="modalTitle"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="modalBody" style="font-size: 13px; color: #555; line-height: 1.6;"></p>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="section mt-3 px-2 mb-5">
+    <ul class="nav nav-tabs style1" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#history">Histori</a></li>
+        <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#leader">Leaderboard</a></li>
+    </ul>
+    <div class="tab-content mt-2">
+        <div class="tab-pane fade show active" id="history">
+    @forelse($history_on_mount as $item)
+    <div class="card mb-1 border-0 shadow-sm rounded-lg p-2">
+        <div class="d-flex align-items-center">
+            <ion-icon name="finger-print" class="text-success h2 me-2"></ion-icon>
+            <div class="w-100">
+                <div class="d-flex justify-content-between">
+                    <small class="fw-bold text-dark">{{ date('d M Y', strtotime($item->date)) }}</small>
+                    <small class="text-primary fw-bold">{{ $item->name ?? 'Non-Shift' }}</small>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span style="font-size: 12px;" class="text-muted">
+                        {{ date('H:i', strtotime($item->time_in)) }} -
+                        {{ $item->time_out ? date('H:i', strtotime($item->time_out)) : '--:--' }}
+                    </span>
+
+                    @php
+                        // Jam ketika karyawan melakukan absen
+                        $jam_absen = date('H:i', strtotime($item->time_in));
+
+                        // Batas akhir absen (entry_time) dari database
+                        // Kita format ke H:i agar perbandingannya apel-ke-apel
+                        $batas_masuk = $item->entry_time ? date('H:i', strtotime($item->entry_time)) : null;
+                    @endphp
+
+                    @if($batas_masuk)
+                        @if($jam_absen > $batas_masuk)
+                            <span class="badge bg-danger" style="font-size: 9px;">Terlambat</span>
+                        @else
+                            <span class="badge bg-success" style="font-size: 9px;">Ontime</span>
+                        @endif
+                    @else
+                        {{-- Muncul jika join jadwal gagal atau entry_time kosong --}}
+                        <span class="badge bg-secondary" style="font-size: 9px;">No Schedule</span>
+                    @endif
+                </div>
+                {{-- Opsi: Tampilkan jam batas untuk memastikan --}}
+                @if($batas_masuk)
+                    <div style="font-size: 8px; color: #bbb;">Batas Masuk: {{ $batas_masuk }}</div>
+                @endif
+            </div>
+        </div>
+    </div>
+    @empty
+    <div class="text-center p-3"><small class="text-muted">Tidak ada data bulan ini.</small></div>
+    @endforelse
+</div>
+
+        <div class="tab-pane fade" id="leader">
+            <ul class="listview image-listview shadow-sm rounded-xl overflow-hidden">
+                @foreach($leader_board as $l)
+                <li>
+                    <div class="item">
+                        <img src="{{ $l->avatar ? asset('storage/'.$l->avatar) : asset('assets/img/avatar.png') }}" class="image">
+                        <div class="in">
+                            <div>
+                                <div class="fw-bold" style="font-size: 13px;">{{ $l->first_name }}</div>
+                                <small class="text-muted">{{ $l->position_name }}</small>
+                            </div>
+                            <span class="badge {{ $l->time_in ? 'bg-success' : 'bg-secondary' }}">
+                                {{ $l->time_in ? date('H:i', strtotime($l->time_in)) : 'Absen' }}
+                            </span>
+                        </div>
+                    </div>
+                </li>
+                @endforeach
+            </ul>
+        </div>
+    </div>
+</div>
 @endsection
 @push('scripts')
-    <script>
-        function showLogoutConfirmation() {
-            // Cek apakah SweetAlert2 sudah dimuat
-            if (typeof Swal !== 'undefined') {
-                Swal.fire({
-                    title: 'Konfirmasi Logout?',
-                    text: "Anda akan keluar dari sesi ini.",
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#3085d6',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Ya, Keluar!',
-                    cancelButtonText: 'Batal'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        // Jika pengguna mengklik "Ya, Keluar!", submit form
-                        document.getElementById('logout-form').submit();
-                    }
-                });
-            } else {
-                // Fallback ke fungsi confirm() standar jika SweetAlert tidak terdeteksi
-                if (confirm('Apakah Anda yakin ingin keluar dari sesi ini?')) {
-                    document.getElementById('logout-form').submit();
-                }
-            }
+
+<script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        if (document.querySelectorAll('.splide__slide').length > 0) {
+            new Splide('#announcement-slider', {
+                type   : 'loop',
+                drag   : 'free',
+                snap   : true,
+                perPage: 1,
+                arrows : false, // Sembunyikan panah untuk tampilan mobile cleaner
+                autoplay: true,
+                interval: 4000,
+                pagination: true,
+            }).mount();
         }
-    </script>
+    });
+
+    $(document).ready(function() {
+    // Saat modal akan ditampilkan
+    $('#modalAnnouncement').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget); // Tombol yang diklik
+        var title = button.data('title');    // Ambil data-title
+        var content = button.data('content'); // Ambil data-content
+
+        var modal = $(this);
+        modal.find('#modalTitle').text(title);
+        modal.find('#modalBody').text(content);
+    });
+});
+</script>
+
 @endpush

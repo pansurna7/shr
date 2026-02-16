@@ -48,8 +48,10 @@
     </div>
 @endsection
 
-{{-- @push('scripts')
+@push('scripts')
     <script>
-
+        $("#nik").mask('0000000')
+        $("#gapok").mask('000.000.000.000.000,00', {reverse: true})
+        $("#nKtp").mask('00000000000000000')
     </script>
-@endpush --}}
+@endpush

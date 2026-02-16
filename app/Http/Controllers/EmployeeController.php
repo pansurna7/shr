@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use Log;
 use Illuminate\Support\Facades\DB;
 use App\Models\Employee;
+use App\Models\Location;
 use App\Models\Position;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -32,12 +33,13 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        $workinghours   = WorkingHours::all();
-        $employee = Employee::where('id' , 0)->first();
-        $positions = Position::all();
-        $branchs = Branch::all();
 
-        return view('backend.employee.create',compact('employee','positions','branchs','workinghours'));
+        $employee       = null;
+        $positions      = Position::all();
+        $branchs        = Branch::all();
+        $locations      = Location::all();
+
+        return view('backend.employee.create',compact('employee','positions','branchs', 'locations'));
     }
 
     /**
@@ -57,8 +59,8 @@ class EmployeeController extends Controller
                 'name'      => $request->fName,
                 'email'     => $request->email,
                 'password'  => Hash::make($request->password),
-                // 'status'    => $request->checkStatus,
-                'status'    => filled('checkStatus'),
+                // 'status'    => filled('checkStatus'),
+                'status'    => $request->has('checkStatus') ? 1 : 0,
             ]);
 
             // B. Dapatkan user_id dari user yang baru dibuat
@@ -80,6 +82,7 @@ class EmployeeController extends Controller
                 'user_id'               => $new_user_id,
                 'position_id'           => $request->jabatan,
                 'branch_id'             => $request->branch,
+                'is_free_absent'         => $request->has('is_free_absent') ? 1 : 0,
                 'nik'                   => $request->nik,
                 'nomor_ktp'             => $request->nKtp,
                 'first_name'            => $request->fName,
@@ -102,21 +105,9 @@ class EmployeeController extends Controller
 
             ]);
 
-
-            $workinghour_id     = $request->idwk;
-            $days               = $request->day;
-            $data=[];
-
-            for ($i=0; $i < count($days) ; $i++) {
-                $data[] = [
-                    'employee_id'       =>$employee->id,
-                    'days'              =>$days[$i],
-                    'workinghour_id'    =>$workinghour_id[$i],
-                ];
-            }
-            // dd($data);
-            if(!empty($data)){
-                WorkingDay::insert($data);
+            // ✨ Simpan Multiple Location jika bukan Free Absen
+            if (!$request->has('is_free_absent') && $request->has('location_ids')) {
+                $employee->assigned_locations()->sync($request->location_ids);
             }
             DB::commit();
             flash()->success('Employee created successfully');
@@ -124,171 +115,134 @@ class EmployeeController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             flash()->error('Please fix the errors in the form :' . $e->getMessage());
-            return back();
+            return back()->withInput();
 
         }
 
 
     }
 
-        /**
-         * Display the specified resource.
-         */
-        public function show(string $id)
-        {
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit($id)
+    {
+        // $employee       = Employee::where('id' , $id)->first();
+        $employee           = Employee::with('assigned_locations')->findOrFail($id);
+        // $user           = User::where('id',$employee->user_id)->first();
+        $user               = User::findOrFail($employee->user_id);
+        $positions          = Position::all();
+        $branchs            = Branch::all();
+        $locations           = Location::all();
+        // $workinghours   = WorkingHours::all();
+        // $workingdays    = WorkingDay::where('employee_id', $employee->id)
+                            // ->pluck('workinghour_id', 'days')
+                            // ->toArray();
 
-        }
+        return view('backend.employee.edit',compact('employee','positions','branchs','user', 'locations'));
+    }
 
-        /**
-         * Show the form for editing the specified resource.
-         */
-        public function edit($id)
-        {
-            $employee       = Employee::where('id' , $id)->first();
-            $user           = User::where('id',$employee->user_id)->first();
-            $positions      = Position::all();
-            $branchs        = Branch::all();
-            $workinghours   = WorkingHours::all();
-            $workingdays    = WorkingDay::where('employee_id', $employee->id)
-                                ->pluck('workinghour_id', 'days')
-                                ->toArray();
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        // 🔥 PENTING: Gunakan Database Transaction untuk memastikan atomisitas User & Employee
+        DB::beginTransaction();
 
-            return view('backend.employee.edit',compact('employee','positions','branchs','user','workinghours','workingdays'));
-        }
+        try {
+            $employee = Employee::findOrFail($id); // Gunakan findOrFail untuk penanganan 404
+            // 1. Validasi
+            $request->validate([
+                'email' => 'required|email|unique:users,email,' . $employee->user_id,
+                'password' => 'nullable|string|min:8',
+                'avatar' => 'nullable|image|mimes:jpg,png,jpeg|max:2048'
+            ]);
 
-        /**
-         * Update the specified resource in storage.
-         */
-        public function update(Request $request, $id)
-        {
-            // 🔥 PENTING: Gunakan Database Transaction untuk memastikan atomisitas User & Employee
-            DB::beginTransaction();
-
-            try {
-                // 1. Validasi
-
-                $employee = Employee::findOrFail($id); // Gunakan findOrFail untuk penanganan 404
-
-                // 2. Penanganan Avatar (Sebelum update data employee)
-                if ($request->hasFile('avatar')) {
-                    // Hapus file lama jika ada
-                    if ($employee->avatar) {
-                        Storage::disk('public')->delete($employee->avatar);
-                    }
-                    $employee->avatar = $request->file("avatar")->store("avatar", "public");
+            // 2. Penanganan Avatar (Sebelum update data employee)
+            if ($request->hasFile('avatar')) {
+                // Hapus file lama jika ada
+                if ($employee->avatar) {
+                    Storage::disk('public')->delete($employee->avatar);
                 }
-                // Jika tidak ada file baru diunggah, biarkan $employee->avatar seperti semula
-
-                // 3. Update Data Employee
-                // $employee->fill($request->only([
-                //     'position_id', 'branch_id', 'nik', 'nomor_ktp', 'first_name', 'last_name',
-                //     'place_of_birth', 'date_of_birth', 'gender', 'religion', 'marital_status',
-                //     'jumlah_anak', 'education', 'address', 'mobile', 'gaji_pokok',
-                //     'tanggal_diangkat', 'tanggal_keluar', 'nomor_rekening', 'rekening_atas_nama'
-                // ]));
-                // Menggunakan fill() untuk mass assignment yang lebih rapi
-
-                // MAPPING FIELD YANG TIDAK SESUAI (Pastikan sesuai dengan nama request dan database)
-                $employee->position_id           = $request->jabatan;
-                $employee->branch_id             = $request->branch;
-                $employee->nik                   = $request->nik;
-                $employee->nomor_ktp             = $request->nKtp;
-                $employee->first_name            = $request->fName;
-                $employee->last_name             = $request->lName;
-                $employee->place_of_birth        = $request->tLahir;
-                $employee->date_of_birth         = $request->tglLahir;
-                $employee->gender                = $request->gendre;
-                $employee->religion              = $request->agama;
-                $employee->marital_status        = $request->statusNikah;
-                $employee->jumlah_anak           = $request->jAnak;
-                $employee->education             = $request->pendidikan;
-                $employee->address               = $request->alamat;
-                $employee->mobile                = $request->handphone;
-                $employee->gaji_pokok            = $request->gapok;
-                $employee->tanggal_diangkat      = $request->tglKontrak;
-                $employee->tanggal_keluar        = $request->tglResign;
-                $employee->nomor_rekening        = $request->nRek;
-                $employee->rekening_atas_nama    = $request->pRek;
-
-                $employee->save();
-
-                $request->validate([
-                    // Email harus unik kecuali milik user ini
-                    'email' => 'required|email|unique:users,email,'.$employee->user_id, // Asumsikan user_id tersedia di request atau employee
-                    'password' => 'nullable|string|min:8',
-                    'avatar' => 'nullable|image|mimes:jpg,png,jpeg|max:2048', // Tambahkan validasi file yang lebih baik
-                ]);
-                // 4. Update Data User
-                $user = User::findOrFail($employee->user_id);
-
-                $user->name = $request->fName;
-                $user->email = $request->email; // ✨ PERBAIKAN: Mengatur email user
-
-                // ✨ PERBAIKAN: Menangani checkbox/switch Status
-                $user->status = $request->has('checkStatus') ? 1 : 0;
-
-                // 5. Update Password (Kondisional)
-                if (!empty($request->password)) {
-                    $user->password = Hash::make($request->password);
-                }
-
-                $user->save();
-
-                //UPDATE JADWAL KERJA HARIAN (WorkingDay)
-                $workinghour_ids = $request->idwk;
-                $days            = $request->day;
-                $dataToInsert = [];
-
-                // ✅ A. Hapus semua jadwal lama karyawan ini terlebih dahulu
-                // Ini mencegah duplikasi dan memastikan hanya jadwal baru yang tersimpan
-                WorkingDay::where('employee_id', $employee->id)->delete();
-
-                // ✅ B. Siapkan data baru untuk disisipkan
-                for ($i = 0; $i < count($days); $i++) {
-                    $current_workinghour_id = $workinghour_ids[$i];
-
-                    // Hanya sisipkan jika WorkingHour ID dipilih (tidak kosong/null)
-                    if (!empty($current_workinghour_id)) {
-                        $dataToInsert[] = [
-                            'employee_id'       => $employee->id,
-                            'days'              => $days[$i],
-                            'workinghour_id'    => $current_workinghour_id,
-                        ];
-                    }
-                }
-
-                // ✅ C. Sisipkan data baru secara massal
-                if (!empty($dataToInsert)) {
-                    WorkingDay::insert($dataToInsert);
-                }
-
-                DB::commit(); // Commit Transaction
-
-                flash()->success('Employee updated successfully');
-                return redirect()->route('employee.index');
-
-            } catch (\Exception $e) {
-                DB::rollBack(); // Rollback jika ada error
-
-
-                flash()->error('Gagal memperbarui data. Silakan coba lagi. ' . $e->getMessage());
-                return back()->withInput();
+                $employee->avatar = $request->file("avatar")->store("avatar", "public");
             }
-        }
 
-        /**
-         * Remove the specified resource from storage.
-         */
-        // public function delete($id)
-        // {
-        //     if($id){
-        //         $permission = Employee::findById($id);
-        //         $permission->delete();
-        //         flash()->success('Employee deleted successfully');
-        //         return redirect()->back();
-        //     }
-        // }
-        public function delete($id)
+
+            // 3. Update Data Employee
+
+            $employee->position_id           = $request->jabatan;
+            $employee->branch_id             = $request->branch;
+            $employee->nik                   = $request->nik;
+            $employee->is_free_absent        = $request->has('is_free_absent') ? 1 : 0;
+            $employee->nomor_ktp             = $request->nKtp;
+            $employee->first_name            = $request->fName;
+            $employee->last_name             = $request->lName;
+            $employee->place_of_birth        = $request->tLahir;
+            $employee->date_of_birth         = $request->tglLahir;
+            $employee->gender                = $request->gendre;
+            $employee->religion              = $request->agama;
+            $employee->marital_status        = $request->statusNikah;
+            $employee->jumlah_anak           = $request->jAnak;
+            $employee->education             = $request->pendidikan;
+            $employee->address               = $request->alamat;
+            $employee->mobile                = $request->handphone;
+            $employee->gaji_pokok            = $request->gapok;
+            $employee->tanggal_diangkat      = $request->tglKontrak;
+            $employee->tanggal_keluar        = $request->tglResign;
+            $employee->nomor_rekening        = $request->nRek;
+            $employee->rekening_atas_nama    = $request->pRek;
+
+            $employee->save();
+
+            // ✨ 4. Sync Multiple Locations
+            if ($request->has('is_free_absent')) {
+                // Jika Free Absen diaktifkan, hapus semua lokasi khusus
+                $employee->assigned_locations()->detach();
+            } else {
+                // Jika tidak, sinkronkan dengan pilihan Select2
+                $employee->assigned_locations()->sync($request->location_ids ?? []);
+            }
+            // $request->validate([
+            //     // Email harus unik kecuali milik user ini
+            //     'email' => 'required|email|unique:users,email,'.$employee->user_id, // Asumsikan user_id tersedia di request atau employee
+            //     'password' => 'nullable|string|min:8',
+            //     'avatar' => 'nullable|image|mimes:jpg,png,jpeg|max:2048', // Tambahkan validasi file yang lebih baik
+            // ]);
+            // 4. Update Data User
+            $user = User::findOrFail($employee->user_id);
+
+            $user->name = $request->fName;
+            $user->email = $request->email; // ✨ PERBAIKAN: Mengatur email user
+
+            // ✨ PERBAIKAN: Menangani checkbox/switch Status
+            $user->status = $request->has('checkStatus') ? 1 : 0;
+
+            // 5. Update Password (Kondisional)
+            if (!empty($request->password)) {
+                $user->password = Hash::make($request->password);
+            }
+
+            $user->save();
+
+
+
+            DB::commit(); // Commit Transaction
+
+            flash()->success('Employee updated successfully');
+            return redirect()->route('employee.index');
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // Rollback jika ada error
+
+
+            flash()->error('Gagal memperbarui data. Silakan coba lagi. ' . $e->getMessage());
+            return back()->withInput();
+        }
+    }
+
+
+    public function delete($id)
     {
         // 1. Mulai Database Transaction
         DB::beginTransaction();
@@ -331,10 +285,10 @@ class EmployeeController extends Controller
         }
     }
 
-    public function setWorkingHours($id)
-    {
-        $employee       = Employee::where('id' , $id)->first();
-        $workinghours   = WorkingHours::all();
-        return view('backend.employee.setworkinghour', compact('employee','workinghours'));
-    }
+    // public function setWorkingHours($id)
+    // {
+    //     $employee       = Employee::where('id' , $id)->first();
+    //     $workinghours   = WorkingHours::all();
+    //     return view('backend.employee.setworkinghour', compact('employee','workinghours'));
+    // }
 }

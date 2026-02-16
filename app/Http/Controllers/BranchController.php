@@ -20,8 +20,8 @@ class BranchController extends Controller
             'code'              => $request->kode,
             'name'              => $request->name,
             'address'           => $request->address,
-            'location'          => $request->location,
-            'radius'            => $request->radius,
+            // 'location'          => $request->location,
+            // 'radius'            => $request->radius,
             'meal_allowance'    => $request->meal_allowance,
         ];
         try {

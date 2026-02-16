@@ -19,6 +19,8 @@
     <link rel="stylesheet" href="{{asset('assets/frontend/assets/css/style.css')}}">
     {{-- <link rel="manifest" href="{{asset('assets/frontend/assets/__manifest.json')}}"> --}}
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    {{-- datepicker --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 
     @stack('css')
 </head>
@@ -70,6 +72,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     {{-- datepicker --}}
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
         am4core.ready(function () {
 

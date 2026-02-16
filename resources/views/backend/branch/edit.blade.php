@@ -26,7 +26,7 @@
             </div>
         </div>
     </div>
-    <div class="row mb-3">
+    {{-- <div class="row mb-3">
         <label for="groupName" class="col-sm-3 col-form-label">Koordinat</label>
         <div class="col-sm-9">
             <div class="col-md-9">
@@ -41,7 +41,7 @@
                 <input type="text" class="form-control" id="radius" name="radius" value="{{$branch->radius}}" required>
             </div>
         </div>
-    </div>
+    </div> --}}
     <div class="row mb-3">
         <label for="groupName" class="col-sm-3 col-form-label">Meal Allowance</label>
         <div class="col-sm-9">

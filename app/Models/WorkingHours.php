@@ -19,7 +19,7 @@ class WorkingHours extends Model
 public function workingDays(): BelongsToMany
 {
     // Menampilkan hari-hari yang termasuk dalam jadwal ini, melalui tabel pivot
-    return $this->belongsToMany(WorkingDay::class);
+    return $this->belongsToMany(WorkingDay::class, 'working_hour_working_day');
 }
 }
 

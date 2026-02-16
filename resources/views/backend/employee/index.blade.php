@@ -54,32 +54,46 @@
                             <th scope="col" class="text-center align-middle">#</th>
                             <th scope="col" class="text-center align-middle">Nik</th>
                             <th scope="col" class="text-center align-middle">Nama</th>
-                            <th scope="col" class="text-center align-middle">Jabatan</th>
                             <th scope="col" class="text-center align-middle">No.Telp</th>
                             <th scope="col" class="text-center align-middle">Foto</th>
-                            <th scope="col" class="text-center align-middle">Departement</th>
                             <th scope="col" class="text-center align-middle">Branch</th>
+                            <th scope="col" class="text-center align-middle">Lokasi Absen</th>
                             <th scope="col" class="text-center align-middle">Created</th>
-                            {{-- <th scope="col" class="text-center align-middle">Updated</th> --}}
-                            <th scope="col" class="text-center align-middle" style="width: 20%">Action</th>
+                            <th scope="col" class="text-center align-middle" style="width: 15%">Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         @if (count($employees)>0)
                             @foreach ($employees as $d )
-                                    <tr>
+                                <tr>
                                     <th scope="row" class="align-middle">{{ $loop->iteration }}</th>
                                     <td class="align-middle">{{ $d->nik }}</td>
-                                    <td class="align-middle">{{ $d->first_name ." " . $d->last_name }}</td>
-                                    <td class="align-middle">{{ $d->position->name }}</td>
+                                    <td class="align-middle">
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold text-primary">{{ $d->first_name ." " . $d->last_name }}</span>
+                                            <small class="text-muted">{{ $d->position->name }} ({{ $d->position->departement->name }})</small>
+                                        </div>
+                                    </td>
                                     <td class="align-middle">{{ $d->mobile }}</td>
-                                    <td class="align-middle"><img class="img-circle" src="{{ asset('storage/'. $d->avatar) }}"
+                                    <td class="align-middle">
+                                        <img class="img-circle" src="{{ asset('storage/'. $d->avatar) }}"
                                         alt="Foto Profile">
                                     </td>
-                                    <td class="align-middle">{{ $d->position->departement->name }}</td>
                                     <td class="align-middle">{{ $d->branch->name }}</td>
+                                    <td class="align-middle">
+                                        @if($d->is_free_absent)
+                                            <span class="badge bg-success"><i class="bx bx-world"></i> Free Absen</span>
+                                        @else
+                                            @if($d->assigned_locations->count() > 0)
+                                                @foreach($d->assigned_locations as $loc)
+                                                    <span class="badge bg-light text-dark border"><i class="bx bx-map-pin"></i> {{ $loc->name }}</span>
+                                                @endforeach
+                                            @else
+                                                <span class="badge bg-danger">Lokasi Belum Set</span>
+                                            @endif
+                                        @endif
+                                    </td>
                                     <td class="align-middle">{{ $d->created_at?->format('Y-m-d') }}</td>
-                                    {{-- <td class="align-middle">{{ $d->updated_at?->format('Y-m-d') }}</td> --}}
                                     <td class="text-center align-middle">
                                         @can('employee.edit')
                                             <a href="{{ route('employee.edit', $d->id)}}" class="btn btn-sm btn-warning">
@@ -87,12 +101,6 @@
                                                 Edit
                                             </a>
                                         @endcan
-                                        {{-- @can('employee.edit')
-                                            <a href="{{ route('employee.time', $d->id)}}" class="btn btn-sm btn-info">
-                                                <i class="bx bx-timer" data-toggle="tooltip" data-placement="top" title="time"></i>
-                                                Set Time
-                                            </a>
-                                        @endcan --}}
 
                                         <form id="delete-form-{{ $d->id }}" action="{{ route('employee.delete', $d->id) }}" method="POST" style="display: none;">
                                             @csrf
@@ -106,13 +114,10 @@
                                 </tr>
                             @endforeach
                         @else
-                            <tr>
-                                <td colspan="7" class="text-center">No Data Found!</td>
-                            </tr>
+
                         @endif
                     </tbody>
                 </table>
-                {{-- {{ $roles->links() }} --}}
             </div>
         </div>
     </div>

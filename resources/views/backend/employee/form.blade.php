@@ -274,197 +274,35 @@
                         <label for="pRek" class="form-label">Nama Pemilik Rekening</label>
                         <input type="text" class="form-control" name="pRek" id="pRek"  value="{{ old('pRek',$employee->rekening_atas_nama ?? '') }}" />
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">Opsi Kehadiran</label>
+                        <div class="form-check form-switch fs-6 mb-2">
+                            <input type="checkbox"
+                                class="form-check-input"
+                                id="is_free_absent"
+                                name="is_free_absent"
+                                {{ (old('is_free_absent', $employee->is_free_absent ?? false)) ? 'checked' : '' }}>
+                            <label class="form-check-label" for="is_free_absent">Free Absen (Bisa absen di mana saja)</label>
+                        </div>
+                    </div>
+
+                    <div id="location_select_container" class="mb-3 {{ (old('is_free_absent', $employee->is_free_absent ?? false)) ? 'd-none' : '' }}">
+                        <label for="locations" class="form-label">Lokasi Penempatan (Multiple)</label>
+                        <select id="locations" name="location_ids[]" class="form-select select2" multiple="multiple" data-placeholder="Pilih satu atau lebih lokasi...">
+                            @foreach($locations as $loc)
+                                @php
+                                    // Ambil ID lokasi yang sudah terasosiasi (untuk mode Edit)
+                                    $selectedLocations = old('location_ids', isset($employee) ? $employee->assigned_locations->pluck('id')->toArray() : []);
+                                @endphp
+                                <option value="{{ $loc->id }}" {{ in_array($loc->id, $selectedLocations) ? 'selected' : '' }}>
+                                    {{ $loc->name }} ({{ $loc->radius }}m)
+                                </option>
+                            @endforeach
+                        </select>
+                        <div class="form-text">Pilih lokasi spesifik jika karyawan tidak diset "Free Absen".</div>
+                    </div>
                 </div>
-                <div class="col-6">
-                    <h3>Setting Jam Kerja</h3>
-                    <table class="table table-responsive table-borderless">
-                            <thead>
-                                <tr>
-                                    <th>HARI</th>
-                                    <th class="text-center">JAM KERJA</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{-- Asumsi Anda mengulangi baris ini untuk 7 hari, kita ambil contoh Senin --}}
-                                <tr>
-                                    <td class="align-middle">
-                                        Senin
-                                        <input type="hidden" name="day[]" value="Senin">
-                                    </td>
-                                    <td>
-                                        <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
 
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Senin'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td class="align-middle">
-                                        Selasa
-                                        <input type="hidden" name="day[]" value="Selasa">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Selasa'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="align-middle">
-                                        Rabu
-                                        <input type="hidden" name="day[]" value="Rabu">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Rabu'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="align-middle">
-                                        Kamis
-                                        <input type="hidden" name="day[]" value="Kamis">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Kamis'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="align-middle">
-                                        Jumat
-                                        <input type="hidden" name="day[]" value="Jumat">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Jumat'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="align-middle">
-                                        Sabtu
-                                        <input type="hidden" name="day[]" value="Sabtu">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Sabtu'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="align-middle">
-                                        Minggu
-                                        <input type="hidden" name="day[]" value="Minggu">
-                                    </td>
-                                    <td>
-                                         <select name="idwk[]" id="idwk" class="form-select" required>
-                                            <option value="">Pilih Jam Kerja</option>
-
-                                            {{-- 1. Ambil ID Jadwal yang tersimpan untuk hari ini ('Senin') --}}
-                                            @php
-                                                // Gunakan operator Null Coalescing (??) untuk menangani kasus jika 'Senin' belum ada di database
-                                                $selectedId = $workingdays['Minggu'] ?? null;
-                                            @endphp
-
-                                            @foreach($workinghours as $d )
-                                                <option value="{{ $d->id }}"
-                                                        {{-- 2. Bandingkan ID Jadwal yang tersimpan dengan ID yang sedang di-loop --}}
-                                                        {{ $selectedId == $d->id ? 'selected' : '' }}>
-                                                    {{ $d->name }}
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                </div>
             </div>
         </div>
         <div id="step-3" class="tab-pane" role="tabpanel">
@@ -541,6 +379,8 @@
                 <p><strong>Gaji Pokok                       :</strong> <span id="review-gPokok"></span></p>
                 <p><strong>No.Rekening                      :</strong> <span id="review-nRek"></span></p>
                 <p><strong>Pemilik Rekening                 :</strong> <span id="review-pRek"></span></p>
+                <p><strong>Free Absen                       :</strong> <span id="review-free-absent"></span></p>
+                <p><strong>Daftar Lokasi                    :</strong> <span id="review-lokasi"></span></p>
                 <hr>
                 <h5 class="mt-4 mb-3">Data Akun</h5>
                 <hr>
@@ -639,60 +479,70 @@
     });
 
     function loadReviewData() {
-    // Ambil Nilai dari Input (Gunakan ID/Name input form Anda)
-    var noKTP = $('#nKtp').val();
-    var nama = $('#fName').val() + " " + $('#lName').val();
-    var tempatLahir = $('#tLahir').val()
-    var tglLahir = $('#tglLahir').val()
-    var jenisKelamin = $('input[name="gendre"]:checked').val();
-    var agama = $('#agama').val()
-    var statusNikah = $('#statusNikah').val()
-    var jmlAnak = $('#jAnak').val()
-    var pendidikan = $('#pendidikan').val()
-    var alamat = $('#alamat').val()
-    var noHP = $('#handphone').val()
-    var nik = $('#nik').val()
-    var jabatan = $('#jabatan option:selected').text();
-    var branch =  $('#branch option:selected').text();
-    var tglKontrak = $('#tglKontrak').val()
-    var tglResign = $('#tglResign').val()
-    var gPokok = $('#gapok').val()
-    var nRek = $('#nRek').val()
-    var pRek = $('#pRek').val()
-    var email = $('#email').val()
-    var password = $('#password').val()
+        // Ambil Nilai dari Input (Gunakan ID/Name input form Anda)
+        var noKTP = $('#nKtp').val();
+        var nama = $('#fName').val() + " " + $('#lName').val();
+        var tempatLahir = $('#tLahir').val()
+        var tglLahir = $('#tglLahir').val()
+        var jenisKelamin = $('input[name="gendre"]:checked').val();
+        var agama = $('#agama').val()
+        var statusNikah = $('#statusNikah').val()
+        var jmlAnak = $('#jAnak').val()
+        var pendidikan = $('#pendidikan').val()
+        var alamat = $('#alamat').val()
+        var noHP = $('#handphone').val()
+        var nik = $('#nik').val()
+        var jabatan = $('#jabatan option:selected').text();
+        var branch =  $('#branch option:selected').text();
+        var tglKontrak = $('#tglKontrak').val()
+        var tglResign = $('#tglResign').val()
+        var gPokok = $('#gapok').val()
+        var nRek = $('#nRek').val()
+        var pRek = $('#pRek').val()
+        var email = $('#email').val()
+        var password = $('#password').val()
 
 
-    // Asumsikan ID input pada langkah-langkah sebelumnya adalah:
-    // Langkah 1: #input_nama_lengkap, #input_tgl_lahir
-    // Langkah 2: #input_email
+        // Asumsikan ID input pada langkah-langkah sebelumnya adalah:
+        // Langkah 1: #input_nama_lengkap, #input_tgl_lahir
+        // Langkah 2: #input_email
 
-    // Tampilkan Nilai di Step Review (Gunakan ID span/p Anda)
-    $('#review-noktp').text(noKTP);
-    $('#review-nama').text(nama);
-    $('#review-tLahir').text(tempatLahir);
-    $('#review-tglLahir').text(tglLahir);
-    $('#review-jKelamin').text(jenisKelamin);
-    $('#review-agama').text(agama);
-    $('#review-statusNikah').text(statusNikah);
-    $('#review-jmlAnak').text(jmlAnak);
-    $('#review-pendidikan').text(pendidikan);
-    $('#review-alamat').text(alamat);
-    $('#review-noHP').text(noHP);
-    $('#review-nik').text(nik);
-    $('#review-jabatan').text(jabatan);
-    $('#review-branch').text(branch);
-    $('#review-tglKontrak').text(tglKontrak);
-    $('#review-tglResign').text(tglResign);
-    $('#review-gPokok').text(gPokok);
-    $('#review-nRek').text(nRek);
-    $('#review-pRek').text(pRek);
-    $('#review-email').text(email);
-    $('#review-password').text(password);
+        // Tampilkan Nilai di Step Review (Gunakan ID span/p Anda)
+        $('#review-noktp').text(noKTP);
+        $('#review-nama').text(nama);
+        $('#review-tLahir').text(tempatLahir);
+        $('#review-tglLahir').text(tglLahir);
+        $('#review-jKelamin').text(jenisKelamin);
+        $('#review-agama').text(agama);
+        $('#review-statusNikah').text(statusNikah);
+        $('#review-jmlAnak').text(jmlAnak);
+        $('#review-pendidikan').text(pendidikan);
+        $('#review-alamat').text(alamat);
+        $('#review-noHP').text(noHP);
+        $('#review-nik').text(nik);
+        $('#review-jabatan').text(jabatan);
+        $('#review-branch').text(branch);
+        $('#review-tglKontrak').text(tglKontrak);
+        $('#review-tglResign').text(tglResign);
+        $('#review-gPokok').text(gPokok);
+        $('#review-nRek').text(nRek);
+        $('#review-pRek').text(pRek);
+        $('#review-email').text(email);
+        $('#review-password').text(password);
+        // Di dalam function loadReviewData()
+        var isFreeAbsen = $('#is_free_absent').is(':checked') ? 'Ya (Bebas)' : 'Tidak (Terbatas)';
+        var selectedLocs = [];
+        $('#locations option:selected').each(function() {
+            selectedLocs.push($(this).text());
+        });
+        var lokasiList = isFreeAbsen === 'Ya (Bebas)' ? '-' : (selectedLocs.join(', ') || 'Belum dipilih');
+
+        // Tampilkan di Step 4 Review (Pastikan Anda menambah ID span ini di HTML Step 4)
+        $('#review-free-absent').text(isFreeAbsen);
+        $('#review-lokasi').text(lokasiList);
 
 
-    // Ulangi untuk semua field lain...
-}
+    }
 
     $(document).ready(function () {
 
@@ -732,6 +582,22 @@
             changeYear: true,         // Memungkinkan memilih tahun dengan dropdown
             yearRange: "1900:2025",   // Menetapkan rentang tahun yang luas (sesuaikan sesuai kebutuhan)
             //**defaultDate: "1990-01-01"** // Opsi: Memberi tanggal default yang umum (misal, 1 Januari 1990)
+        });
+
+        // Toggle Select Lokasi berdasarkan status Free Absen
+        $('#is_free_absent').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('#location_select_container').addClass('d-none');
+                $('#locations').val(null).trigger('change'); // Reset pilihan jika free absen
+            } else {
+                $('#location_select_container').removeClass('d-none');
+            }
+        });
+
+        // Inisialisasi Select2
+        $('.select2').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
         });
     });
 </script>

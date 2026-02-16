@@ -35,7 +35,7 @@
                             @include('backend.users.form')
                             <div class="row">
                                 <label class="col-sm-3 col-form-label"></label>
-                               <div class="text-center mt-5">
+                                <div class="text-center mt-5">
                                     <button type="submit" class="btn btn-light px-5"><i class="bx bx-save"></i>Save</button>
                                     <a type="btn btn-light" href="{{ route('users.index') }}" class="btn btn-light px-5"><i class="lni lni-arrow-left-circle"></i>Back</a>
                                 </div>

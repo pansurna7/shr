@@ -19,6 +19,7 @@ return new class extends Migration
 
             // Corrected table name (assuming 'positions' is the correct table)
             $table->foreignId('position_id')->constrained('positions')->onDelete('no action');
+            $table->boolean('is_free_absent')->default(0)->after('position_id');
 
             // Adjusted to standard plural convention
             $table->foreignId('branch_id')->constrained('branches')->onDelete('no action');
@@ -51,6 +52,10 @@ return new class extends Migration
 
             $table->string('nomor_rekening')->nullable();
             $table->string('rekening_atas_nama')->nullable();
+            // Sisa jatah dari tahun sebelumnya
+            $table->integer('kuota_tahun_lalu')->default(0);
+            // Jatah murni tahun berjalan (misal 12 hari)
+            $table->integer('kuota_tahun_ini')->default(12);
             $table->timestamps();
         });
     }

@@ -45,7 +45,14 @@ class WorkingHoursController extends Controller
         $request->validate([
             'name' => 'required|max:255'
         ]);
-        $workinghour->update($request->all());
+        // dd($request->all());
+        $workinghour->update([
+            'name'          => $request->name,
+            'start_time'    => $request->start_time,
+            'entry_time'    => $request->entry_time,
+            'end_time'      => $request->end_time,
+            'out_time'      => $request->out_time,
+        ]);
         flash()->success('Working Hours updated successfully');
         return response()->json([
             'message'       => 'Branch Updated Successfully!',

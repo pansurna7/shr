@@ -20,6 +20,7 @@
                         <i class="lni lni-circle-plus"></i>Add New</a>
                 @endcan
             </div>
+            
         </div>
     </div>
 	<hr/>
@@ -32,6 +33,7 @@
                             <th scope="col" class="text-center align-middle">#</th>
                             <th scope="col" class="text-center align-middle">Code</th>
                             <th scope="col" class="text-center align-middle">Name</th>
+
                             <th scope="col" class="text-center align-middle">Created</th>
                             <th scope="col" class="text-center align-middle">Updated</th>
                             <th scope="col" class="text-center align-middle">Action</th>

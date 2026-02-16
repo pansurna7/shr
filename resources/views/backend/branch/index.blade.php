@@ -26,15 +26,15 @@
     <div class="card">
         <div class="card-body">
             <div class="table-responsive table-bordered">
-                <table class="table mb-0" id="tblBarnch">
+                <table class="table mb-0" id="tblBranch">
                     <thead class="table-light text-bold">
                         <tr>
                             <th scope="col" class="text-center align-middle">#</th>
                             <th scope="col" class="text-center align-middle">Code</th>
                             <th scope="col" class="text-center align-middle">Name</th>
                             <th scope="col" class="text-center align-middle">Address</th>
-                            <th scope="col" class="text-center align-middle">Map</th>
-                            <th scope="col" class="text-center align-middle">Radius</th>
+                            {{-- <th scope="col" class="text-center align-middle">Map</th>
+                            <th scope="col" class="text-center align-middle">Radius</th> --}}
                             <th scope="col" class="text-center align-middle">Meal Allowance</th>
                             <th scope="col" class="text-center align-middle">Created</th>
                             <th scope="col" class="text-center align-middle">Updated</th>
@@ -49,8 +49,8 @@
                                     <td class="align-middle" data-name="code">{{ $item->code }}</td>
                                     <td class="align-middle" data-name="name">{{ $item->name }}</td>
                                     <td class="align-middle" data-name="address">{{ $item->address }}</td>
-                                    <td class="align-middle" data-name="location">{{ $item->location }}</td>
-                                    <td class="align-middle" data-name="radius">{{ $item->radius }}</td>
+                                    {{-- <td class="align-middle" data-name="location">{{ $item->location }}</td>
+                                    <td class="align-middle" data-name="radius">{{ $item->radius }}</td> --}}
                                     <td class="align-middle" data-name="meal_allowance">{{ $item->meal_allowance }}</td>
                                     <td class="align-middle">{{ $item->created_at?->format('Y-m-d') }}</td>
                                     <td class="align-middle">{{ $item->updated_at?->format('Y-m-d') }}</td>
@@ -119,7 +119,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row mb-3">
+                        {{-- <div class="row mb-3">
                             <label for="groupName" class="col-sm-3 col-form-label">Koordinat</label>
                             <div class="col-sm-9">
                                 <div class="col-md-9">
@@ -134,7 +134,7 @@
                                     <input type="text" class="form-control" id="radius" name="radius" required>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="row mb-3">
                             <label for="groupName" class="col-sm-3 col-form-label">Meal Allowance</label>
                             <div class="col-sm-9">

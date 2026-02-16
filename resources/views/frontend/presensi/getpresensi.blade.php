@@ -15,64 +15,94 @@
             return $jml_jam . ":" . round($sisamenit2);
         }
 @endphp
-@if (count($presences)>0)
-    @foreach ($presences as $d )
-        <tr>
-            <th scope="row" class="align-middle text-start">{{ $loop->iteration }}</th>
-            <td class="align-middle text-start">{{ date('d-m-Y', strtotime($d->date)) }}</td>
-            <td class="align-middle">{{ $d->employee->first_name ." " . $d->employee->last_name }}</td>
-            <td class="align-middle">{{ $d->employee->position->name }}</td>
-            <td class="align-middle">{{ $d->employee->position->departement->name }}</td>
-            <td class="align-middle text-start">
-                {!! $d->time_in != null
-                    ? date('H:i:s', strtotime($d->time_in))
-                    : "<span class='badge bg-danger'>Tidak Absen</span>"
-                !!}
-            </td>
-            <td class="align-middle text-center"><img class="img-circle" src="{{ $d->photo_in != null ? asset('storage/absensi/'. $d->photo_in) : " " }}"
-                alt="Foto IN">
-            </td>
-            <td class="align-middle text-start">
-                {!! $d->time_out != null
-                    ? date('H:i:s', strtotime($d->time_out))
-                    : "<span class='badge bg-danger'>Belum Absen Pulang</span>"
-                !!}
-            </td>
-            <td class="align-middle text-center">
-                @if ($d->photo_out)
-                {{-- Jika ada foto, tampilkan gambar --}}
-                    <img class="img-circle"
-                    src="{{ asset('storage/absensi/' . $d->photo_out) }}"
-                    alt="Foto Pulang">
-                @else
-                {{-- Jika tidak ada foto, tampilkan ikon (Menggunakan {!! !!} aman di sini) --}}
-                    <i class="bx bx-loader-circle"></i>
-                @endif
-            </td>
-            <td class="align-middle text-center">
-                @if ($d->time_in >= "07:00")
-                    @php
-                        $jam_terlambat = selisih("07:00:00", $d->time_in)
-                    @endphp
-                    <span class="badge bg-danger">Terlambat : {{$jam_terlambat}}</span>
-                @else
-                    <span class="badge bg-success">Ontime</span>
-                @endif
-            </td>
-            <td class="align-middle text-center">
-                {{-- @can('position.edit') --}}
-                    <a href="#" class="btn btn-success showMap" id="{{ $d->id }}">
-                        <i class="bx bx-map-pin"></i>
-                    </a>
-                {{-- @endcan --}}
-            </td>
-        </tr>
-    @endforeach
-@else
+@forelse ($presences as $d)
     <tr>
-        <td colspan="7" class="text-center">No Data Found!</td>
+        <th scope="row" class="align-middle text-start">{{ $loop->iteration }}</th>
+        <td class="align-middle text-start">{{ date('d-m-Y', strtotime($d->date)) }}</td>
+        <td class="align-middle">
+            <div class="fw-bold">{{ $d->first_name ." " . $d->last_name }}</div>
+            <small class="text-muted">{{ $d->position_name }}</small>
+        </td>
+        <td class="align-middle">{{ $d->departement_name }}</td>
+        <td class="align-middle">
+            <span class="badge bg-light text-dark border">{{ $d->tipe_jam_kerja ?? 'Pengajuan' }}</span>
+        </td>
+
+        {{-- JAM MASUK --}}
+        <td class="align-middle">
+            @if($d->time_in)
+                <div class="fw-bold text-success">{{ date('H:i', strtotime($d->time_in)) }}</div>
+            @else
+                <span class="badge bg-danger">Tidak Absen</span>
+            @endif
+        </td>
+        <td class="align-middle text-center">
+            @if ($d->photo_in)
+                <img class="img-circle zoomable-image"
+                    src="{{ $d->photo_in != null ? asset('storage/absensi/'. $d->photo_in) : " "  }}"
+                    alt="Foto Pulang"
+                    style="width: 45px; height: 45px; cursor: pointer;">
+            @else
+                <i class="bx bx-camera-off text-muted font-20"></i>
+            @endif
+        </td>
+        {{-- JAM PULANG --}}
+        <td class="align-middle">
+            @if($d->time_out)
+                <div class="fw-bold text-primary">{{ date('H:i', strtotime($d->time_out)) }}</div>
+            @else
+                <span class="badge bg-warning text-dark small italic">Tidak Absen</span>
+            @endif
+        </td>
+
+        {{-- FOTO PULANG (Contoh Zoomable) --}}
+        <td class="align-middle text-center">
+            @if ($d->photo_out)
+                <img class="img-circle zoomable-image"
+                    src="{{ $d->photo_out != null ? asset('storage/absensi/'. $d->photo_out) : " "  }}"
+                    alt="Foto Pulang"
+                    style="width: 45px; height: 45px; cursor: pointer;">
+            @else
+                <i class="bx bx-camera-off text-muted font-20"></i>
+            @endif
+        </td>
+
+        {{-- STATUS KETERLAMBATAN --}}
+        <td class="align-middle text-center">
+            @if ($d->status == 'p')
+                <span class="text-muted">Pengajuan</span>
+            @else
+                @if ($d->time_in && $d->entry_time)
+                    @if ($d->time_in > $d->entry_time)
+                        @php
+                            // Hitung selisih jika fungsi selisih() tersedia,
+                            // atau gunakan Carbon::parse($d->time_in)->diff(Carbon::parse($d->entry_time))->format('%H:%I:%S');
+                            $jam_terlambat = selisih($d->entry_time, $d->time_in);
+                        @endphp
+                        <span class="badge bg-danger">Terlambat: {{ $jam_terlambat }}</span>
+                    @else
+                        <span class="badge bg-success">Tepat Waktu</span>
+                    @endif
+                @else
+                    <span class="text-muted">-</span>
+                @endif
+            @endif
+        </td>
+
+        {{-- MAP PIN --}}
+        <td class="align-middle text-center">
+            <button class="btn btn-sm btn-outline-info showMap" id="{{ $d->id }}">
+                <i class="bx bx-map-pin"></i>
+            </button>
+        </td>
     </tr>
-@endif
+@empty
+    <tr>
+        <td colspan="11" class="text-center p-4">
+            <div class="text-muted">Tidak ada data presensi ditemukan untuk range tanggal ini.</div>
+        </td>
+    </tr>
+@endforelse
 <script>
     $(document).ready(function () {
        $("#modal-location").on('shown.bs.modal', function () {

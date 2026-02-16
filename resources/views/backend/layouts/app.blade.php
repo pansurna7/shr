@@ -45,6 +45,7 @@
         crossorigin=""/>
 
 
+
 	<title>LexaDev - @yield('title')</title>
     @stack('css')
 </head>
@@ -130,6 +131,7 @@
 	<script src="{{ asset('assets/plugins/sparkline-charts/jquery.sparkline.min.js') }}"></script>
 	<script src="{{ asset('assets/plugins/jquery-knob/excanvas.js') }}"></script>
 	<script src="{{ asset('assets/plugins/select2/js/select2.min.js') }}"></script>
+	<script src="{{ asset('assets/js/jquery-mask-min.js') }}"></script>
 <!--- Data Tables .Net -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js" integrity="sha384-VFQrHzqBh5qiJIU0uGU5CIW3+OWpdGGJM9LBnGbuIH2mkICcFZ7lPd/AAtI7SNf7" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js" integrity="sha384-/RlQG9uf0M2vcTw3CX7fbqgbj/h8wKxw7C3zu9/GxcBPRKOEcESxaxufwRXqzq6n" crossorigin="anonymous"></script>
@@ -161,6 +163,9 @@
     <script src="https://cdn.jsdelivr.net/npm/smartwizard@6/dist/js/jquery.smartWizard.min.js"></script>
     {{-- Date Picker --}}
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
 
 
     {{-- script untuk menyimpan thema --}}
@@ -206,6 +211,7 @@
         }
     </script>
     {{-- end  script untuk menyimpan thema --}}
+
     @stack('scripts')
 </body>
 
