@@ -23,7 +23,7 @@
     <a href="{{route('presensi.izin')}}" class="item {{ request()->is('presensi/izin') ? 'active' : '' }}">
         <div class="col">
             <ion-icon name="calendar-outline"></ion-icon>
-            <strong>Izin</strong>
+            <strong>Submission</strong>
         </div>
     </a>
     <a href="{{route('edit.profile')}}" class="item {{ request()->is('editprofile') ? 'active' : '' }}">

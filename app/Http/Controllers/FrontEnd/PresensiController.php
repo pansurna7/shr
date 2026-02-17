@@ -52,7 +52,7 @@ class PresensiController extends Controller
         return $hari_ini;
     }
 
-    
+
     public function create()
     {
         $today = date('Y-m-d');
@@ -371,55 +371,137 @@ class PresensiController extends Controller
         return view('frontend.presensi.pengajuan');
     }
 
-    public function cektglpengajuan(Request $request)
-    {
-        $user_id = Auth::user()->employee->id;
-        $tgl_input = $request->tgl_izin;
+    // public function cektglpengajuan(Request $request)
+    // {
+    //     $user_id = Auth::user()->employee->id;
+    //     $tgl_input = $request->tgl_izin;
 
-        // Pastikan input tidak kosong
-        if (!$tgl_input) {
-            return response()->json(['status' => 'success']);
-        }
+    //     // Pastikan input tidak kosong
+    //     if (!$tgl_input) {
+    //         return response()->json(['status' => 'success']);
+    //     }
 
-        // Pengecekan Submission
-        $cekSubmission = \App\Models\Submission::where('employee_id', $user_id)
-            ->where('status', '!=', 2) // Bukan ditolak
-            ->where(function ($query) use ($tgl_input) {
-                $query
-                    ->where(function ($q) use ($tgl_input) {
-                        // Skenario A: Tanggal input ada di rentang date s/d end_date
-                        $q->whereNotNull('end_date')->where('date', '<=', $tgl_input)->where('end_date', '>=', $tgl_input);
-                    })
-                    ->orWhere(function ($q) use ($tgl_input) {
-                        // Skenario B: end_date NULL, maka cek apakah kolom date sama dengan input
-                        $q->whereNull('end_date')->where('date', $tgl_input);
-                    })
-                    ->orWhere(function ($q) use ($tgl_input) {
-                        // Skenario C: Jaga-jaga jika input tepat sama dengan salah satu kolom
-                        $q->where('date', $tgl_input)->orWhere('end_date', $tgl_input);
-                    });
-            })
-            ->first();
+    //     // Pengecekan Submission
+    //     $cekSubmission = \App\Models\Submission::where('employee_id', $user_id)
+    //         ->where('status', '!=', 2) // Bukan ditolak
+    //         ->where(function ($query) use ($tgl_input) {
+    //             $query
+    //                 ->where(function ($q) use ($tgl_input) {
+    //                     // Skenario A: Tanggal input ada di rentang date s/d end_date
+    //                     $q->whereNotNull('end_date')->where('date', '<=', $tgl_input)->where('end_date', '>=', $tgl_input);
+    //                 })
+    //                 ->orWhere(function ($q) use ($tgl_input) {
+    //                     // Skenario B: end_date NULL, maka cek apakah kolom date sama dengan input
+    //                     $q->whereNull('end_date')->where('date', $tgl_input);
+    //                 })
+    //                 ->orWhere(function ($q) use ($tgl_input) {
+    //                     // Skenario C: Jaga-jaga jika input tepat sama dengan salah satu kolom
+    //                     $q->where('date', $tgl_input)->orWhere('end_date', $tgl_input);
+    //                 });
+    //         })
+    //         ->first();
 
-        if ($cekSubmission) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Sudah ada pengajuan pada tanggal tersebut.',
-            ]);
-        }
+    //     if ($cekSubmission) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Sudah ada pengajuan pada tanggal tersebut.',
+    //         ]);
+    //     }
 
-        // 2. Pengecekan Presensi (Pastikan nama kolom tgl_presensi benar)
-        $cekAbsen = DB::table('presences')->where('employee_id', $user_id)->whereDate('date', $tgl_input)->whereNotNull('jam_in')->whereNotNull('jam_out')->exists();
+    //     // 2. Pengecekan Presensi (Pastikan nama kolom tgl_presensi benar)
+    //     $cekAbsen = DB::table('presences')->where('employee_id', $user_id)->whereDate('date', $tgl_input)->whereNotNull('jam_in')->whereNotNull('jam_out')->exists();
 
-        if ($cekAbsen) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Absensi sudah lengkap.',
-            ]);
-        }
+    //     if ($cekAbsen) {
+    //         return response()->json([
+    //             'status' => 'error',
+    //             'message' => 'Absensi sudah lengkap.',
+    //         ]);
+    //     }
 
-        return response()->json(['status' => 'success']);
-    }
+    //     return response()->json(['status' => 'success']);
+    // }
+
+// public function cektglpengajuan(Request $request)
+// {
+//     // Pastikan user terautentikasi dan memiliki relasi employee
+//     if (!Auth::check() || !Auth::user()->employee) {
+//         return response()->json(['status' => 'error', 'message' => 'Sesi berakhir atau data karyawan tidak ditemukan.']);
+//     }
+
+//     $user_id = Auth::user()->employee->id;
+//     $tgl_input = $request->tgl_izin;
+
+//     if (!$tgl_input) {
+//         return response()->json(['status' => 'success']);
+//     }
+
+//     try {
+//         // 1. HANDLE RENTANG TANGGAL (Explode)
+//         // Gunakan trim() dan pengecekan yang lebih fleksibel terhadap kata " to "
+//         if (str_contains($tgl_input, ' to ')) {
+//             // Kita pecah dengan " to " (biasanya flatpickr default pakai 1 spasi kiri-kanan)
+//             $rentang = explode(' to ', $tgl_input);
+//             $tgl_mulai = date('Y-m-d', strtotime(trim($rentang[0])));
+//             $tgl_akhir = date('Y-m-d', strtotime(trim($rentang[1])));
+//         } else {
+//             $tgl_mulai = date('Y-m-d', strtotime(trim($tgl_input)));
+//             $tgl_akhir = $tgl_mulai;
+//         }
+
+//         // 2. CEK SUBMISSION (APAKAH SUDAH ADA IZIN/CUTI?)
+//         $cekSubmission = \App\Models\Submission::where('employee_id', $user_id)
+//             ->where('status', '!=', 2) // Bukan ditolak (0: Pending, 1: Approved)
+//             ->where(function ($query) use ($tgl_mulai, $tgl_akhir) {
+//                 $query->whereBetween('date', [$tgl_mulai, $tgl_akhir])
+//                     ->orWhereBetween('end_date', [$tgl_mulai, $tgl_akhir])
+//                     ->orWhere(function ($q) use ($tgl_mulai, $tgl_akhir) {
+//                         $q->where('date', '<=', $tgl_mulai)
+//                           ->where('end_date', '>=', $tgl_akhir);
+//                     });
+//             })
+//             ->first();
+
+//         if ($cekSubmission) {
+//             return response()->json([
+//                 'status' => 'error',
+//                 'message' => 'Sudah ada pengajuan aktif pada rentang tanggal tersebut (' .
+//                              date('d/m/Y', strtotime($cekSubmission->date)) . ' s/d ' .
+//                              date('d/m/Y', strtotime($cekSubmission->end_date ?? $cekSubmission->date)) . ')',
+//             ]);
+//         }
+
+//         // 3. CEK ABSENSI (Hanya jika condition bukan koreksi presensi)
+//         // Jika sudah ada jam masuk/pulang, tidak boleh timpa dengan Izin/Sakit/Cuti
+//         $cekAbsen = DB::table('presences')
+//             ->where('employee_id', $user_id)
+//             ->whereBetween('date', [$tgl_mulai, $tgl_akhir])
+//             ->where(function ($q) {
+//                 // Mengecek apakah kolom jam masuk atau jam pulang sudah terisi
+//                 $q->where(function($sq) {
+//                     $sq->whereNotNull('time_in')->where('time_in', '!=', '');
+//                 })->orWhere(function($sq) {
+//                     $sq->whereNotNull('time_out')->where('time_out', '!=', '');
+//                 });
+//             })
+//             ->first();
+
+//         if ($cekAbsen) {
+//             $tglTerabsen = date('d/m/Y', strtotime($cekAbsen->date));
+//             return response()->json([
+//                 'status' => 'error',
+//                 'message' => "Gagal! Anda sudah memiliki data absensi pada tanggal $tglTerabsen. Tidak diperbolehkan mengajukan izin pada hari Anda bekerja.",
+//             ]);
+//         }
+
+//         return response()->json(['status' => 'success']);
+
+//     } catch (\Exception $e) {
+//         return response()->json([
+//             'status' => 'error',
+//             'message' => 'Kesalahan sistem: ' . $e->getMessage(),
+//         ]);
+//     }
+// }
 
     public function storeizin(Request $request)
     {
@@ -769,124 +851,83 @@ class PresensiController extends Controller
         return view('frontend.presensi.submission', compact('submissions'));
     }
 
-    public function updateStatus(Request $request, $id)
-    {
-        $request->validate([
-            'status' => 'required|in:1,2', // 1: Approved, 2: Rejected
-        ]);
+   public function updateStatus(Request $request, $id)
+{
+    $request->validate(['status' => 'required|in:1,2']);
 
-        try {
-            DB::transaction(function () use ($request, $id) {
-                // 1. Ambil data pengajuan
-                $submission = DB::table('submissions')->where('id', $id)->first();
+    try {
+        DB::transaction(function () use ($request, $id) {
+            // 1. Ambil & Lock data
+            $submission = DB::table('submissions')->where('id', $id)->lockForUpdate()->first();
 
-                if (!$submission) {
-                    throw new \Exception('Data pengajuan tidak ditemukan.');
-                }
+            if (!$submission) throw new \Exception('Data tidak ditemukan.');
+            if ($submission->status != '0') throw new \Exception('Data sudah diproses.');
 
-                if ($submission->status == '1') {
-                    throw new \Exception('Pengajuan ini sudah disetujui sebelumnya.');
-                }
+            // 2. Jika Status disetujui (Approved)
+            if ($request->status == '1') {
 
-                // 2. Jika Status diubah menjadi APPROVED (1)
-                if ($request->status == '1') {
-                    // --- LOGIKA A: KOREKSI PRESENSI (Condition 5) ---
-                    if ($submission->condition == 5) {
-                        $cekAbsen = DB::table('presences')->where('employee_id', $submission->employee_id)->where('date', $submission->date)->first();
-
-                        $dataAbsen = [
+                // --- KONDISI 5: KOREKSI PRESENSI (Update Tabel Presences) ---
+                if ($submission->condition == '5') {
+                    DB::table('presences')->updateOrInsert(
+                        [
                             'employee_id' => $submission->employee_id,
-                            'date' => $submission->date,
-                            'time_in' => $submission->jam_in_pengajuan ?? ($cekAbsen->time_in ?? null),
-                            'time_out' => $submission->jam_out_pengajuan ?? ($cekAbsen->time_out ?? null),
-                            'status' => 'P',
+                            'date'        => $submission->date
+                        ],
+                        [
+                            'time_in'    => $submission->jam_in_pengajuan ?? '',
+                            'time_out'   => $submission->jam_out_pengajuan ?? '',
+                            'status'     => 'P', // P = Hadir
                             'updated_at' => now(),
-                        ];
+                        ]
+                    );
+                }
 
-                        if ($cekAbsen) {
-                            DB::table('presences')->where('id', $cekAbsen->id)->update($dataAbsen);
-                        } else {
-                            $dataAbsen['created_at'] = now();
-                            DB::table('presences')->insert($dataAbsen);
-                        }
-                    }
-
-                    // --- LOGIKA B: CUTI/IZIN/SAKIT (Potong Kuota jika tipe Cuti) ---
-                    else {
-                        $employee = DB::table('employees')->where('id', $submission->employee_id)->first();
+                // --- KONDISI 1, 2, 3, 4: IZIN, SAKIT, CUTI ---
+                else {
+                    // Jika ini adalah CUTI (Condition 4), potong kuota
+                    if ($submission->condition == '4') {
+                        $emp = DB::table('employees')->where('id', $submission->employee_id)->first();
                         $jml_hari = $submission->total_days;
 
-                        // Potong kuota hanya jika jenisnya adalah CUTI (Condition 4)
-                        if ($submission->condition == 4) {
-                            $bulan_sekarang = date('n');
-                            $sisa_tahun_lalu = $bulan_sekarang <= 3 ? $employee->kuota_tahun_lalu ?? 0 : 0;
-                            $sisa_tahun_ini = $employee->kuota_tahun_ini ?? 0;
+                        $bulan = date('n');
+                        $sisa_lalu = ($bulan <= 3) ? ($emp->kuota_tahun_lalu ?? 0) : 0;
+                        $sisa_ini = $emp->kuota_tahun_ini ?? 0;
 
-                            if ($jml_hari > $sisa_tahun_lalu + $sisa_tahun_ini) {
-                                throw new \Exception('Kuota karyawan tidak mencukupi.');
-                            }
-
-                            if ($sisa_tahun_lalu >= $jml_hari) {
-                                $new_lalu = $sisa_tahun_lalu - $jml_hari;
-                                $new_ini = $sisa_tahun_ini;
-                            } else {
-                                $sisa_kurang = $jml_hari - $sisa_tahun_lalu;
-                                $new_lalu = 0;
-                                $new_ini = $sisa_tahun_ini - $sisa_kurang;
-                            }
-
-                            DB::table('employees')
-                                ->where('id', $employee->id)
-                                ->update([
-                                    'kuota_tahun_lalu' => $new_lalu,
-                                    'kuota_tahun_ini' => $new_ini,
-                                    'updated_at' => now(),
-                                ]);
+                        if ($jml_hari > ($sisa_lalu + $sisa_ini)) {
+                            throw new \Exception("Kuota tidak mencukupi (Sisa: " . ($sisa_lalu + $sisa_ini) . " hari).");
                         }
 
-                        // Tambahkan record ke tabel presences untuk Izin/Sakit/Cuti
-                        $start = \Carbon\Carbon::parse($submission->date);
-                        $end = $submission->end_date ? \Carbon\Carbon::parse($submission->end_date) : $start;
-
-                        for ($date = $start; $date->lte($end); $date->addDay()) {
-                            if ($date->isWeekend()) {
-                                continue;
-                            } // Skip akhir pekan
-
-                            DB::table('presences')->updateOrInsert(
-                                [
-                                    'employee_id' => $submission->employee_id,
-                                    'tgl_presensi' => $date->format('Y-m-d'),
-                                ],
-                                [
-                                    'status' => $submission->condition,
-                                    'jam_in' => null,
-                                    'jam_out' => null,
-                                    'keterangan' => $submission->information,
-                                    'updated_at' => now(),
-                                ],
-                            );
+                        if ($sisa_lalu >= $jml_hari) {
+                            $new_lalu = $sisa_lalu - $jml_hari;
+                            $new_ini = $sisa_ini;
+                        } else {
+                            $new_ini = $sisa_ini - ($jml_hari - $sisa_lalu);
+                            $new_lalu = 0;
                         }
+
+                        DB::table('employees')->where('id', $emp->id)->update([
+                            'kuota_tahun_lalu' => $new_lalu,
+                            'kuota_tahun_ini'  => $new_ini,
+                            'updated_at'       => now(),
+                        ]);
                     }
+
+                    // Note: Tidak ada insert ke tabel 'presences' di sini sesuai permintaan Anda.
                 }
+            }
 
-                // 3. Update Status di Tabel Submissions
-                DB::table('submissions')
-                    ->where('id', $id)
-                    ->update([
-                        'status' => $request->status,
-                        'updated_at' => now(),
-                    ]);
-            });
+            // 3. Update status utama di tabel submissions
+            DB::table('submissions')->where('id', $id)->update([
+                'status'     => $request->status,
+                'updated_at' => now(),
+            ]);
+        });
 
-            $msg = $request->status == '1' ? 'Pengajuan disetujui dan data absensi diperbarui.' : 'Pengajuan telah ditolak.';
-            return redirect()
-                ->back()
-                ->with(['success' => $msg]);
-        } catch (\Exception $e) {
-            return redirect()
-                ->back()
-                ->with(['error' => 'Gagal: ' . $e->getMessage()]);
-        }
+        $msg = $request->status == '1' ? 'Pengajuan berhasil disetujui.' : 'Pengajuan telah ditolak.';
+        return back()->with('success', $msg);
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal: ' . $e->getMessage());
     }
+}
 }

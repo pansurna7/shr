@@ -1,88 +1,160 @@
 @extends('frontend.layout.app')
-@section('title','Form Izin')
+@section('title','Pengajuan Izin')
 @section('header')
-{{-- datepicker --}}
-{{-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css" rel="stylesheet"> --}}
 <style>
-    .datepicker-modal{
-        max-height: 500px !important;
+    /* Custom Styling for Professional Look */
+    .form-container {
+        margin-top: 3.5rem;
+        padding: 15px;
     }
-
-    .datepicker-date-display{
-        background-color: #0d6efd !important;
+    .card-custom {
+        border: none;
+        border-radius: 24px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        background: #ffffff;
     }
-
-    .datepicker-cancel, .datepicker-clear, .datepicker-today, .datepicker-done {
-        color: #0d6efd;
-        padding: 0 1rem;
+    .input-wrapper {
+        position: relative;
+        margin-bottom: 20px;
     }
-
-
-    .fl-wrapper {
-        position: fixed;
-        -webkit-transition: all 1s ease-in-out;
-        -moz-transition: all 1s ease-in-out;
-        transition: all 1s ease-in-out;
-        width: 24em;
-        z-index: 100000000000 !important;
+    .input-wrapper label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #adb5bd;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+        display: block;
+        padding-left: 4px;
     }
-    #ket{
-        height: 150px;
+    .custom-input {
+        border-radius: 16px !important;
+        border: 1.5px solid #f1f3f5 !important;
+        padding: 12px 16px 12px 45px !important;
+        height: auto !important;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa !important;
     }
-
+    .custom-input:focus {
+        background-color: #ffffff !important;
+        border-color: #4e73df !important;
+        box-shadow: 0 0 0 4px rgba(78, 115, 223, 0.1) !important;
+    }
+    .input-icon {
+        position: absolute;
+        left: 16px;
+        top: 38px;
+        font-size: 20px;
+        color: #4e73df;
+        z-index: 10;
+    }
+    .days-badge {
+        display: inline-flex;
+        align-items: center;
+        background: #eef2ff;
+        color: #4e73df;
+        padding: 6px 16px;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 13px;
+        margin-top: 10px;
+    }
+    .submit-btn {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        border: none;
+        border-radius: 16px;
+        padding: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 15px rgba(78, 115, 223, 0.3);
+        margin-top: 10px;
+    }
+    .submit-btn:active {
+        transform: scale(0.98);
+    }
+    /* Flatpickr Customization */
+    .flatpickr-calendar {
+        border-radius: 18px !important;
+        box-shadow: 0 15px 30px rgba(0,0,0,0.1) !important;
+    }
 </style>
-    <div class="appHeader bg-primary text-align">
-        <div class="left">
-            <a href="{{route('presensi.izin')}}" class="headerButton goBack">
-                <ion-icon name="chevron-back-outline"></ion-icon>
-            </a>
-        </div>
-        <div class="pageTitle">@yield('title')</div>
-        <div class="right"></div>
+
+<div class="appHeader bg-primary text-align">
+    <div class="left">
+        <a href="{{route('presensi.izin')}}" class="headerButton goBack">
+            <ion-icon name="chevron-back-outline"></ion-icon>
+        </a>
     </div>
+    <div class="pageTitle">@yield('title')</div>
+    <div class="right"></div>
+</div>
 @endsection
+
 @section('content')
-<div class="row" style="margin-top: 4rem">
-    <div class="col">
-        <form action="{{route('submission.store')}}" method="POST" enctype="multipart/form-data" id="frmIzin" autocomplete="off">
-            @csrf
-            <div class="row">
-                <div class="col">
-                    <div class="form-group">
-                        <input type="text" class="form-control datepicker" placeholder="Tanggal" name="tgl_izin" id="tgl_izin" >
-                    </div>
-                    <div class="mt-2">
-                        <strong>Total: <span id="jmlHari">0</span> Hari</strong>
+<div class="form-container">
+    <div class="card card-custom">
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center bg-primary-light rounded-circle"
+                     style="width: 60px; height: 60px; background: #f0f3ff;">
+                    <ion-icon name="mail-open-outline" style="font-size: 30px; color: #4e73df;"></ion-icon>
+                </div>
+                <h4 class="fw-bold mt-2 mb-0" style="color: #2d3436;">Formulir Izin</h4>
+                <p class="text-muted small">Lengkapi detail pengajuan di bawah ini</p>
+            </div>
+
+            <form action="{{route('submission.store')}}" method="POST" enctype="multipart/form-data" id="frmIzin" autocomplete="off">
+                @csrf
+
+                <div class="input-wrapper">
+                    <label>Pilih Rentang Tanggal</label>
+                    <ion-icon name="calendar-outline" class="input-icon"></ion-icon>
+                    <input type="text" name="tgl_izin" id="tgl_izin" class="form-control custom-input datepicker"
+                           placeholder="Pilih tanggal mulai & berakhir" readonly>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="days-badge">
+                            <ion-icon name="time-outline" class="mr-1"></ion-icon>
+                            <span id="jmlHari">0</span> &nbsp;Hari Kerja
+                        </div>
                         <input type="hidden" name="jml_hari" id="jml_hari_input" value="0">
                     </div>
-                    <div class="form-group">
-                        <select name="status" id="status" class="form-control" disabled hidden>
-                            <option value="0">Izin</option>
-                        </select>
-                    </div>
-                    <div class="from-group">
-                        <textarea name="ket" id="ket" cols="30" rows="5" class="form-group" placeholder="Keterangan"></textarea>
-                    </div>
-
-                    <div class="from-group">
-                        <button type="submit" class="btn btn-success w-100" id="kirim">Kirim</button>
-                    </div>
                 </div>
-            </div>
-        </form>
+
+                <div class="input-wrapper">
+                    <label>Alasan Pengajuan</label>
+                    <ion-icon name="chatbox-ellipses-outline" class="input-icon"></ion-icon>
+                    <textarea name="ket" id="ket" rows="4" class="form-control custom-input"
+                              style="padding-left: 45px !important;"
+                              placeholder="Contoh: Keperluan keluarga mendesak..."></textarea>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary btn-block submit-btn">
+                        <ion-icon name="paper-plane-outline" class="mr-1"></ion-icon>
+                        Kirim Sekarang
+                    </button>
+                    <a href="{{ route('presensi.izin') }}" class="btn btn-link btn-block text-muted mt-2 small">Kembali</a>
+                </div>
+
+                <input type="hidden" name="status" value="0">
+            </form>
+        </div>
     </div>
 </div>
 @endsection
+
 @push('scripts')
 <script>
-    var currYear = (new Date()).getFullYear();
-
     $(document).ready(function() {
+        // Inisialisasi Flatpickr Modern
         flatpickr("#tgl_izin", {
             mode: "range",
             dateFormat: "d-m-Y",
+            disableMobile: "true",
+            locale: { rangeSeparator: "  to  " },
             onChange: function(selectedDates, dateStr, instance) {
-                // --- LOGIKA HITUNG HARI ---
                 let diffDays = 0;
                 if (selectedDates.length === 2) {
                     const diffTime = Math.abs(selectedDates[1] - selectedDates[0]);
@@ -90,66 +162,70 @@
                 } else if (selectedDates.length === 1) {
                     diffDays = 1;
                 }
-                // Update teks jumlah hari di UI
-                $("#jmlHari").text(diffDays);           // Untuk tampilan di layar
-                $("#jml_hari_input").val(diffDays);     // Untuk dikirim ke database
+                $("#jmlHari").text(diffDays);
+                $("#jml_hari_input").val(diffDays);
             },
             onClose: function(selectedDates, dateStr, instance) {
-                // --- LOGIKA AJAX CEK TANGGAL (Hanya jalan jika sudah pilih tanggal) ---
-                if (dateStr !== "") {
-                    $.ajax({
-                        type: "POST",
-                        url: "/submissions/cektglpengajuan",
-                        data: {
-                            _token: "{{csrf_token()}}",
-                            tgl_izin: dateStr,
-                        },
-                        success: function(response) {
-                            // Jika response > 0 berarti sudah ada pengajuan
-                            if (response > 0) {
-                                Swal.fire({
-                                    title: 'Oops',
-                                    text: 'Anda Sudah Melakukan Pengajuan pada rentang tanggal tersebut',
-                                    icon: 'warning',
-                                }).then((result) => {
-                                    // Reset input dan jumlah hari jika bentrok
-                                    instance.clear();
-                                    $("#jmlHari").text(0);
-                                });
-                            }
-                        },
-                        error: function(xhr) {
-                            console.error("Error checking date:", xhr.responseText);
-                        }
+    if (dateStr !== "") {
+        $.ajax({
+            type: "POST",
+            url: "/submissions/cektglpengajuan",
+            data: {
+                _token: "{{csrf_token()}}",
+                tgl_izin: dateStr,
+            },
+            success: function(response) {
+                // response sekarang berupa OBJECT {status: "error", message: "..."}
+                if (response.status === 'error') {
+                    Swal.fire({
+                        title: 'Permintaan Ditolak',
+                        text: response.message,
+                        icon: 'error',
+                        confirmButtonColor: '#4e73df'
+                    }).then((result) => {
+                        // Reset input agar user tidak bisa memaksakan tanggal tersebut
+                        instance.clear();
+                        $("#jmlHari").text(0);
+                        $("#jml_hari_input").val(0);
                     });
                 }
             }
         });
-    });
-    
-    $('#frmIzin').submit(function(e){
-        var tgl_izin=$('#tgl_izin').val();
-        let status=$('#status').val();
-        var keterangan=$('#ket').val();
-        if(tgl_izin == ""){
-            Swal.fire({
-                title: 'Oops',
-                text: 'Tanggal Harus Diisi',
-                icon: 'warning',
-                // confirmButtonText: 'OK'
-            })
-            return false;
-        }else if (keterangan=="") {
-            Swal.fire({
-                title: 'Oops',
-                text: 'Keterangan Harus Diisi',
-                icon: 'warning',
-                // confirmButtonText: 'OK'
-            })
-            return false;
-        };
-    })
+    }
+}
+        });
 
+        // Form Submit dengan Swal yang lebih halus
+        $('#frmIzin').submit(function(e) {
+            e.preventDefault();
+            var tgl = $('#tgl_izin').val();
+            var ket = $('#ket').val();
+
+            if(!tgl) {
+                Swal.fire({ icon: 'error', title: 'Kosong', text: 'Pilih tanggal terlebih dahulu', confirmButtonColor: '#4e73df' });
+                return false;
+            }
+            if(!ket) {
+                Swal.fire({ icon: 'error', title: 'Kosong', text: 'Berikan alasan pengajuan Anda', confirmButtonColor: '#4e73df' });
+                return false;
+            }
+
+            Swal.fire({
+                title: 'Kirim Pengajuan?',
+                text: "Data akan segera diproses oleh pihak HRD.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#4e73df',
+                cancelButtonColor: '#f1f2f6',
+                confirmButtonText: '<span style="color:white">Ya, Kirim</span>',
+                cancelButtonText: '<span style="color:#596275">Batal</span>',
+                reverseButtons: true
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    this.submit();
+                }
+            });
+        });
+    });
 </script>
 @endpush
-
