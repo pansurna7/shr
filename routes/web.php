@@ -28,6 +28,7 @@ use App\Http\Controllers\FrontEnd\SubmissionIzinController;
 use App\Http\Controllers\WorkingHoursDeptController;
 use App\Models\WorkingHours;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\MutationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -124,6 +125,15 @@ Route::middleware(['auth', 'can:announcements.permission'])->group(function () {
     Route::put('/announcement/update/{id}', [AnnouncementController::class, 'update'])->name('announcement.update');
     Route::delete('/announcement/delete/{id}', [AnnouncementController::class, 'delete'])->name('announcement.delete');
 });
+
+Route::middleware(['auth', 'can:mutations.permission'])->group(function () {
+    Route::get('/mutations', [MutationController::class, 'index'])->name('mutation.index');
+    Route::post('/mutation/store', [MutationController::class, 'store'])->name('mutation.store');
+    Route::get('/mutation/{id}/edit', [MutationController::class, 'edit'])->name('mutation.edit');
+    Route::put('/mutation/update/{id}', [MutationController::class, 'update'])->name('mutation.update');
+    Route::delete('/mutation/delete/{id}', [MutationController::class, 'destroy'])->name('mutation.delete');
+});
+
 
 Route::middleware(['auth', 'can:departements.permission'])->group(function () {
     Route::get('/departements', [DepartementController::class, 'index'])->name('departement.index');

@@ -78,6 +78,13 @@ class EmployeeController extends Controller
                 // Variabel $avatarPath akan berisi path/nama file, misalnya: 'avatar/randomstring.jpg'
                 $avatarPath = $request->file('avatar')->store('avatar', 'public');
             }
+            // 1. Bersihkan format ribuan (titik) dan desimal (koma)
+            $gapokRaw = $request->gapok; // Nilainya "5.000.000,00"
+            $gapokCleaned = str_replace('.', '', $gapokRaw);   // Menjadi "5000000,00"
+            $gapokCleaned = str_replace(',', '.', $gapokCleaned); // Menjadi "5000000.00" (Format SQL)
+
+            // 2. Pastikan field tanggal yang kosong menjadi NULL, bukan string kosong ""
+            $tglResign = $request->tglResign ?: null;
             $employee= Employee::create([
                 'user_id'               => $new_user_id,
                 'position_id'           => $request->jabatan,
@@ -96,9 +103,9 @@ class EmployeeController extends Controller
                 'education'             => $request->pendidikan,
                 'address'               => $request->alamat,
                 'mobile'                => $request->handphone,
-                'gaji_pokok'            => $request->gapok,
+                'gaji_pokok'            => $gapokCleaned,
                 'tanggal_diangkat'      => $request->tglKontrak,
-                'tanggal_keluar'        => $request->tglResign,
+                'tanggal_keluar'        => $tglResign,
                 'nomor_rekening'        => $request->nRek,
                 'rekening_atas_nama'    => $request->pRek,
                 'avatar'                => $avatarPath
@@ -252,7 +259,7 @@ class EmployeeController extends Controller
             $employee = Employee::findOrFail($id);
 
             // Simpan user_id untuk menghapus user nanti
-            // $user_id = $employee->user_id;
+            $user_id = $employee->user_id;
 
             // 2. Hapus File Avatar (jika ada)
             if ($employee->avatar) {
@@ -264,10 +271,10 @@ class EmployeeController extends Controller
 
             // 4. Hapus Data User terkait (PENTING!)
             // Cari dan hapus User yang berelasi
-            // $user = User::find($user_id);
-            // if ($user) {
-            //     $user->delete();
-            // }
+            $user = User::find($user_id);
+            if ($user) {
+                $user->delete();
+            }
 
             // 5. Commit Transaksi (semua operasi berhasil)
             DB::commit();
@@ -285,10 +292,5 @@ class EmployeeController extends Controller
         }
     }
 
-    // public function setWorkingHours($id)
-    // {
-    //     $employee       = Employee::where('id' , $id)->first();
-    //     $workinghours   = WorkingHours::all();
-    //     return view('backend.employee.setworkinghour', compact('employee','workinghours'));
-    // }
+
 }

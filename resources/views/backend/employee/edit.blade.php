@@ -1,7 +1,6 @@
 @extends('backend.layouts.app')
-@section('title','Edit')
+@section('title', 'Edit')
 @push('css')
-
 @endpush
 
 @section('content')
@@ -22,7 +21,7 @@
     </div>
 
     <!--end breadcrumb-->
-    <hr/>
+    <hr />
     <div class="card">
         <div class="card-body">
             <div class="card border-top border-0 border-4 border-white">
@@ -36,7 +35,8 @@
                         <hr>
 
                         <div class="container mt-5">
-                          <form id="employeeForm" action="{{ route('employee.update',$employee->id) }}" method="POST" enctype="multipart/form-data">
+                            <form id="employeeForm" action="{{ route('employee.update', $employee->id) }}" method="POST"
+                                enctype="multipart/form-data">
                                 @csrf
                                 @include('backend.employee.form')
                             </form>

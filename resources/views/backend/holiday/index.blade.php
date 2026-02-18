@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Holiday/Libur Nasional')
+@section('title', 'Holiday/Libur Nasional')
 @section('content')
 
     <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
@@ -21,7 +21,8 @@
                 </a>
 
                 {{-- Tombol Import --}}
-                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modal-import-holiday">
+                <button type="button" class="btn btn-success" data-bs-toggle="modal"
+                    data-bs-target="#modal-import-holiday">
                     <i class="bx bx-upload"></i> Import
                 </button>
 
@@ -33,7 +34,7 @@
             </div>
         </div>
     </div>
-	<hr/>
+    <hr />
     <div class="card">
         <div class="card-body">
             <div class="table-responsive table-bordered">
@@ -49,7 +50,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($holidays as $d  )
+                        @foreach ($holidays as $d)
                             <tr>
                                 <td class="align-middle text-center">{{ $loop->iteration }}</td>
                                 <td class="align-middle fw-bold text-primary">
@@ -63,22 +64,27 @@
                                     {{ $d->updated_at ? $d->updated_at->format('d/m/H:i') : '-' }}
                                 </td>
                                 <td class="text-center align-middle">
-                                        @can('holiday.edit')
-                                            <a href="{{ route('holiday.edit', $d->id)}}" class="btn btn-sm btn-warning edit" id="{{$d->id}}">
-                                                <i class="bx bx-pencil" data-toggle="tooltip" data-placement="top" title="Edit"></i>
-                                                Edit
-                                            </a>
-                                        @endcan
+                                    @can('holiday.edit')
+                                        <a href="{{ route('holiday.edit', $d->id) }}" class="btn btn-sm btn-warning edit"
+                                            id="{{ $d->id }}">
+                                            <i class="bx bx-pencil" data-toggle="tooltip" data-placement="top"
+                                                title="Edit"></i>
+                                            Edit
+                                        </a>
+                                    @endcan
 
-                                        <form id="delete-form-{{ $d->id }}" action="{{ route('holiday.delete', $d->id) }}" method="POST" style="display: none;">
-                                            @csrf
-                                        </form>
-                                        @can('holiday.delete')
-                                            <a  class="btn delete-button btn-danger btn-sm" data-id="{{ $d->id }}">
-                                                <i class="bx bx-trash" data-toggle="tooltip" data-placement="top" title="Delete"></i> Delete
-                                            </a>
-                                        @endcan
-                                    </td>
+                                    <form id="delete-form-{{ $d->id }}"
+                                        action="{{ route('holiday.delete', $d->id) }}" method="POST"
+                                        style="display: none;">
+                                        @csrf
+                                    </form>
+                                    @can('holiday.delete')
+                                        <a class="btn delete-button btn-danger btn-sm" data-id="{{ $d->id }}">
+                                            <i class="bx bx-trash" data-toggle="tooltip" data-placement="top"
+                                                title="Delete"></i> Delete
+                                        </a>
+                                    @endcan
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -88,7 +94,8 @@
         </div>
     </div>
     {{-- modal add --}}
-    <div class="modal fade" id="modal-add-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modal-add-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content bg-light">
                 <div class="modal-header">
@@ -103,7 +110,8 @@
                                 <label class="form-label fw-bold">Tanggal Libur</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bx bx-calendar"></i></span>
-                                    <input type="date" name="holiday_date" id="holiday_date" class="form-control @error('holiday_date') is-invalid @enderror" required>
+                                    <input type="date" name="holiday_date" id="holiday_date"
+                                        class="form-control @error('holiday_date') is-invalid @enderror" required>
                                 </div>
                                 @error('holiday_date')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
@@ -112,7 +120,9 @@
 
                             <div class="col-md-8">
                                 <label class="form-label fw-bold">Keterangan / Nama Libur</label>
-                                <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" placeholder="Contoh: Tahun Baru Imlek" required>
+                                <input type="text" name="name" id="name"
+                                    class="form-control @error('name') is-invalid @enderror"
+                                    placeholder="Contoh: Tahun Baru Imlek" required>
                                 @error('name')
                                     <div class="text-danger small mt-1">{{ $message }}</div>
                                 @enderror
@@ -139,7 +149,8 @@
     </div>
 
     {{-- modal edit --}}
-    <div class="modal fade" id="modal-edit-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modal-edit-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content bg-light">
                 <div class="modal-header">
@@ -155,10 +166,12 @@
     </div>
 
     {{-- modal import --}}
-    <div class="modal fade" id="modal-import-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="modal-import-holiday" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content bg-light">
-                <form id="form-import-holiday" action="{{ route('holiday.import') }}" method="POST" enctype="multipart/form-data">
+                <form id="form-import-holiday" action="{{ route('holiday.import') }}" method="POST"
+                    enctype="multipart/form-data">
                     @csrf
                     <div class="modal-header">
                         <h5 class="modal-title text-white">Import Holiday Excel</h5>
@@ -167,16 +180,19 @@
                     <div class="modal-body text-white">
                         <div class="mb-3">
                             <label class="form-label fw-bold">Pilih File Excel</label>
-                            <input type="file" name="file_excel" id="file_excel" class="form-control" accept=".xlsx, .xls" required>
+                            <input type="file" name="file_excel" id="file_excel" class="form-control"
+                                accept=".xlsx, .xls" required>
                         </div>
 
                         <div id="progress-container" class="d-none">
                             <label class="mb-2 small">Memproses Data...</label>
                             <div class="progress" style="height: 20px;">
-                                <div id="import-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                                <div id="import-progress-bar"
+                                    class="progress-bar progress-bar-striped progress-bar-animated bg-success"
                                     role="progressbar" style="width: 0%;">0%</div>
                             </div>
-                            <p class="text-warning small mt-2"><i class="bx bx-error-circle"></i> Mohon jangan tutup jendela ini atau merefresh halaman.</p>
+                            <p class="text-warning small mt-2"><i class="bx bx-error-circle"></i> Mohon jangan tutup
+                                jendela ini atau merefresh halaman.</p>
                         </div>
                     </div>
                     <div class="modal-footer" id="modal-footer-import">
@@ -192,34 +208,39 @@
 @endsection
 @push('scripts')
     <script>
-        (function () {
-			'use strict'
+        (function() {
+            'use strict'
 
-			// Fetch all the forms we want to apply custom Bootstrap validation styles to
-			var forms = document.querySelectorAll('.needs-validation')
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
 
-			// Loop over them and prevent submission
-			Array.prototype.slice.call(forms)
-				.forEach(function (form) {
-				    form.addEventListener('submit', function (event) {
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
                         if (!form.checkValidity()) {
                             event.preventDefault()
                             event.stopPropagation()
                         }
-					    form.classList.add('was-validated')
-				    }, false)
-				})
-			})()
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
 
-        $(document).ready(function () {
-            new DataTable('#tblholiday',{
-            columnDefs:[
-                            {targets:0, orderable:false},
-                            {targets:5, orderable:false},
-                        ]
+        $(document).ready(function() {
+            new DataTable('#tblholiday', {
+                columnDefs: [{
+                        targets: 0,
+                        orderable: false
+                    },
+                    {
+                        targets: 5,
+                        orderable: false
+                    },
+                ]
             });
 
-            $("#btnCreate").click(function (e) {
+            $("#btnCreate").click(function(e) {
                 e.preventDefault();
                 let modal = $("#modal-add-holiday")
                 modal.modal('show')
@@ -228,8 +249,8 @@
             });
 
 
-           // Bagian Edit Button Click
-            $(".edit").click(function (e) {
+            // Bagian Edit Button Click
+            $(".edit").click(function(e) {
                 e.preventDefault();
                 let modal = $("#modal-edit-holiday");
                 let id = $(this).attr('id');
@@ -241,7 +262,7 @@
                         _token: "{{ csrf_token() }}",
                         id: id
                     },
-                    success: function (response) {
+                    success: function(response) {
                         $("#loadEditForm").html(response);
                         modal.modal('show');
                     },
@@ -261,7 +282,7 @@
                     url: '/holiday/update/' + id,
                     data: form.serialize(),
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         window.location.href = "holidays";
                     },
 
@@ -290,7 +311,8 @@
                         // Menghitung persentase upload
                         xhr.upload.addEventListener("progress", function(evt) {
                             if (evt.lengthComputable) {
-                                var percentComplete = Math.round((evt.loaded / evt.total) * 100);
+                                var percentComplete = Math.round((evt.loaded / evt
+                                    .total) * 100);
                                 progressBar.css('width', percentComplete + '%');
                                 progressBar.html(percentComplete + '%');
                             }
@@ -300,8 +322,10 @@
                     beforeSend: function() {
                         // Persiapan tampilan sebelum kirim
                         progressContainer.removeClass('d-none');
-                        btnSubmit.prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Uploading...');
-                        btnClose.addClass('d-none'); // Sembunyikan tombol batal agar tidak di-cancel
+                        btnSubmit.prop('disabled', true).html(
+                            '<i class="bx bx-loader-alt bx-spin"></i> Uploading...');
+                        btnClose.addClass(
+                        'd-none'); // Sembunyikan tombol batal agar tidak di-cancel
                         progressBar.css('width', '0%').html('0%');
                     },
                     success: function(response) {
@@ -321,7 +345,8 @@
                     error: function(xhr) {
                         // Jika gagal
                         progressContainer.addClass('d-none');
-                        btnSubmit.prop('disabled', false).html('<i class="bx bx-upload"></i> Mulai Import');
+                        btnSubmit.prop('disabled', false).html(
+                            '<i class="bx bx-upload"></i> Mulai Import');
                         btnClose.removeClass('d-none');
 
                         let errorMsg = 'Terjadi kesalahan saat memproses file.';
@@ -337,9 +362,9 @@
         });
 
         // popup delete
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.delete-button').forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
                     const itemId = this.dataset.id;
                     Swal.fire({
                         title: 'Are you sure?',
@@ -357,7 +382,5 @@
                 });
             });
         });
-
-
     </script>
 @endpush

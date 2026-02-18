@@ -1,7 +1,6 @@
 @extends('backend.layouts.app')
-@section('title','Create')
+@section('title', 'Create')
 @push('css')
-
 @endpush
 
 @section('content')
@@ -22,7 +21,7 @@
     </div>
 
     <!--end breadcrumb-->
-    <hr/>
+    <hr />
     <div class="card">
         <div class="card-body">
             <div class="card border-top border-0 border-4 border-white">
@@ -36,7 +35,8 @@
                         <hr>
 
                         <div class="container mt-5">
-                          <form id="employeeForm" action="{{ route('employee.store') }}" method="POST" enctype="multipart/form-data">
+                            <form id="employeeForm" action="{{ route('employee.store') }}" method="POST"
+                                enctype="multipart/form-data">
                                 @csrf
                                 @include('backend.employee.form')
                             </form>
@@ -51,7 +51,9 @@
 @push('scripts')
     <script>
         $("#nik").mask('0000000')
-        $("#gapok").mask('000.000.000.000.000,00', {reverse: true})
+        $("#gapok").mask('000.000.000.000.000,00', {
+            reverse: true
+        })
         $("#nKtp").mask('00000000000000000')
     </script>
 @endpush

@@ -54,20 +54,24 @@
                                 </td>
                                 <td>
                                     <div class="d-flex order-actions">
-                                        <a href="javascript:;" class="btn btn-sm btn-warning me-2 btnEdit"
-                                            data-id="{{ $a->id }}" data-title="{{ $a->title }}"
-                                            data-content="{{ $a->content }}" data-start="{{ $a->start_date }}"
-                                            data-end="{{ $a->end_date }}" data-active="{{ $a->is_active }}">
-                                            <i class="bx bxs-edit text-white"></i>
-                                        </a>
-                                        <form action="{{ route('announcement.delete', $a->id) }}" method="POST"
-                                            class="form-delete" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-danger btn-delete">
-                                                <i class="bx bxs-trash"></i>
-                                            </button>
-                                        </form>
+                                        @can('announcement.edit')
+                                            <a href="javascript:;" class="btn btn-sm btn-warning me-2 btnEdit"
+                                                data-id="{{ $a->id }}" data-title="{{ $a->title }}"
+                                                data-content="{{ $a->content }}" data-start="{{ $a->start_date }}"
+                                                data-end="{{ $a->end_date }}" data-active="{{ $a->is_active }}">
+                                                <i class="bx bxs-edit text-white"></i>
+                                            </a>
+                                        @endcan
+                                        @can('announcement.delete')
+                                            <form action="{{ route('announcement.delete', $a->id) }}" method="POST"
+                                                class="form-delete" style="display:inline;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-sm btn-danger btn-delete">
+                                                    <i class="bx bxs-trash"></i>
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </div>
                                 </td>
                             </tr>
