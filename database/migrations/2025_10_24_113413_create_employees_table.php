@@ -39,6 +39,7 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('mobile')->nullable();
             $table->string('avatar')->nullable();
+            $table->text('face_descriptor')->nullable();
 
             // Financial & Employment Data
             // Explicitly defining precision for monetary values
@@ -56,6 +57,7 @@ return new class extends Migration
             $table->integer('kuota_tahun_lalu')->default(0);
             // Jatah murni tahun berjalan (misal 12 hari)
             $table->integer('kuota_tahun_ini')->default(12);
+
             $table->timestamps();
         });
     }

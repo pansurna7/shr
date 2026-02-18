@@ -29,6 +29,7 @@ use App\Http\Controllers\WorkingHoursDeptController;
 use App\Models\WorkingHours;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\MutationController;
+use App\Http\Controllers\ResignationController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -133,7 +134,11 @@ Route::middleware(['auth', 'can:mutations.permission'])->group(function () {
     Route::put('/mutation/update/{id}', [MutationController::class, 'update'])->name('mutation.update');
     Route::delete('/mutation/delete/{id}', [MutationController::class, 'destroy'])->name('mutation.delete');
 });
-
+Route::middleware(['auth', 'can:resignations.permission'])->group(function () {
+    Route::get('/resignations', [ResignationController::class, 'index'])->name('resign.index');
+    Route::post('/resignation', [ResignationController::class, 'store'])->name('resign.store');
+    Route::delete('/resignation/{id}', [ResignationController::class, 'destroy'])->name('resign.delete');
+});
 
 Route::middleware(['auth', 'can:departements.permission'])->group(function () {
     Route::get('/departements', [DepartementController::class, 'index'])->name('departement.index');

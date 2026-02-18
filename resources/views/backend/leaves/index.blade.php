@@ -1,5 +1,5 @@
 @extends('backend.layouts.app')
-@section('title','Leave/Cuti')
+@section('title', 'Leave/Cuti')
 @section('content')
 
     <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
@@ -22,7 +22,7 @@
             </div>
         </div>
     </div>
-	<hr/>
+    <hr />
     <div class="card">
         <div class="card-body">
             <div class="table-responsive table-bordered">
@@ -39,7 +39,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($leaves as $d  )
+                        @foreach ($leaves as $d)
                             <tr>
                                 <td class="align-middle text-center">{{ $loop->iteration }}</td>
                                 <td class="align-middle">{{ $d->name }}</td>
@@ -52,22 +52,26 @@
                                 <td class="align-middle text-center">{{ $d->created_at }}</td>
                                 <td class="align-middle text-center">{{ $d->updated_at }}</td>
                                 <td class="text-center align-middle">
-                                        @can('leave.edit')
-                                            <a href="{{ route('leave.edit', $d->id)}}" class="btn btn-sm btn-warning edit" id="{{$d->id}}">
-                                                <i class="bx bx-pencil" data-toggle="tooltip" data-placement="top" title="Edit"></i>
-                                                Edit
-                                            </a>
-                                        @endcan
+                                    @can('leave.edit')
+                                        <a href="{{ route('leave.edit', $d->id) }}" class="btn btn-sm btn-warning edit"
+                                            id="{{ $d->id }}">
+                                            <i class="bx bx-pencil" data-toggle="tooltip" data-placement="top"
+                                                title="Edit"></i>
+                                            Edit
+                                        </a>
+                                    @endcan
 
-                                        <form id="delete-form-{{ $d->id }}" action="{{ route('leave.delete', $d->id) }}" method="POST" style="display: none;">
-                                            @csrf
-                                        </form>
-                                        @can('leave.delete')
-                                            <a  class="btn delete-button btn-danger btn-sm" data-id="{{ $d->id }}">
-                                                <i class="bx bx-trash" data-toggle="tooltip" data-placement="top" title="Delete"></i> Delete
-                                            </a>
-                                        @endcan
-                                    </td>
+                                    <form id="delete-form-{{ $d->id }}"
+                                        action="{{ route('leave.delete', $d->id) }}" method="POST" style="display: none;">
+                                        @csrf
+                                    </form>
+                                    @can('leave.delete')
+                                        <a class="btn delete-button btn-danger btn-sm" data-id="{{ $d->id }}">
+                                            <i class="bx bx-trash" data-toggle="tooltip" data-placement="top"
+                                                title="Delete"></i> Delete
+                                        </a>
+                                    @endcan
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -84,7 +88,8 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body text-white">
-                    <form id="form-leave" method="POST"  action="{{route('leave.store')}}" class="needs-validation" novalidate>
+                    <form id="form-leave" method="POST" action="{{ route('leave.store') }}" class="needs-validation"
+                        novalidate>
                         @csrf
                         <div class="row mb-3">
                             <label for="groupName" class="col-sm-3 col-form-label">Name Leave</label>
@@ -107,14 +112,17 @@
                             <div class="col-sm-9">
                                 <div class="form-check form-switch mt-2">
                                     <input type="hidden" name="is_active" value="0">
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
-                                    <label class="form-check-label text-white" for="is_active" id="status-label">Active</label>
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                        value="1" checked>
+                                    <label class="form-check-label text-white" for="is_active"
+                                        id="status-label">Active</label>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-footer">
                             <div class="text-center mt-5">
-                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><i class="lni lni-arrow-left-circle"></i>Close</button>
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal"><i
+                                        class="lni lni-arrow-left-circle"></i>Close</button>
                                 <button type="submit" class="btn btn-light px-5"><i class="bx bx-save"></i>Save</button>
                             </div>
                         </div>
@@ -141,48 +149,53 @@
 @endsection
 @push('scripts')
     <script>
-        (function () {
-			'use strict'
+        (function() {
+            'use strict'
 
-			// Fetch all the forms we want to apply custom Bootstrap validation styles to
-			var forms = document.querySelectorAll('.needs-validation')
+            // Fetch all the forms we want to apply custom Bootstrap validation styles to
+            var forms = document.querySelectorAll('.needs-validation')
 
-			// Loop over them and prevent submission
-			Array.prototype.slice.call(forms)
-				.forEach(function (form) {
-				    form.addEventListener('submit', function (event) {
+            // Loop over them and prevent submission
+            Array.prototype.slice.call(forms)
+                .forEach(function(form) {
+                    form.addEventListener('submit', function(event) {
                         if (!form.checkValidity()) {
                             event.preventDefault()
                             event.stopPropagation()
                         }
-					    form.classList.add('was-validated')
-				    }, false)
-				})
-			})()
+                        form.classList.add('was-validated')
+                    }, false)
+                })
+        })()
 
-        $(document).ready(function () {
-            new DataTable('#tblLeave',{
-            columnDefs:[
-                            {targets:0, orderable:false},
-                            {targets:5, orderable:false},
-                        ]
+        $(document).ready(function() {
+            new DataTable('#tblLeave', {
+                columnDefs: [{
+                        targets: 0,
+                        orderable: false
+                    },
+                    {
+                        targets: 5,
+                        orderable: false
+                    },
+                ]
             });
 
 
 
-            $("#btnCreate").click(function (e) {
+            $("#btnCreate").click(function(e) {
                 e.preventDefault();
                 let modal = $("#modal-add-leave")
                 modal.modal('show')
                 $("#name").val("");
                 $("#quota").val("");
-                $("#quota").on("input", function () {
+                $("#quota").on("input", function() {
                     this.value = this.value.replace(/[^0-9]/g, '');
                 });
             });
 
 
-            $(".edit").click(function (e) {
+            $(".edit").click(function(e) {
                 e.preventDefault();
                 let modal = $("#modal-edit-leave");
                 let id = $(this).attr('id');
@@ -200,10 +213,10 @@
                     },
                     // FIX 3: Remove this line or set it to 'json'/'html'
                     // dataType: "dataType",
-                    success: function (response) {
+                    success: function(response) {
                         $("#loadEditForm").html(response);
                         modal.modal('show');
-                        $("#quota").on("input", function () {
+                        $("#quota").on("input", function() {
                             this.value = this.value.replace(/[^0-9]/g, '');
                         });
                     }
@@ -221,9 +234,9 @@
                     url: '/leave/update/' + id,
                     data: form.serialize(),
                     dataType: 'json',
-                    success: function (response) {
+                    success: function(response) {
                         // $('#tblDepartement').DataTable().ajax.reload(null,false);
-                         //   window.location.reload();
+                        //   window.location.reload();
                         window.location.href = "leaves";
                     },
 
@@ -236,9 +249,9 @@
         });
 
         // popup delete
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             document.querySelectorAll('.delete-button').forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
                     const itemId = this.dataset.id;
                     Swal.fire({
                         title: 'Are you sure?',
