@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 use function Flasher\Prime\flash;
+use Illuminate\Support\Facades\Log;
 
 class PresensiController extends Controller
 {
@@ -51,7 +52,6 @@ class PresensiController extends Controller
         }
         return $hari_ini;
     }
-
 
     public function create()
     {
@@ -106,131 +106,163 @@ class PresensiController extends Controller
         return compact('meters');
     }
 
-
-
     // store berdasarkan multiple location atau free absent
     public function store(Request $request)
     {
         $nik = Auth::user()->employee->id;
-        $employee = Employee::where('id', $nik)->first();
-
-        // 1. Ambil Status Free Absent & Lokasi Kantor
-        $is_free_absen = $employee->is_free_absen; // Pastikan kolom ini ada di database
-
-        // Mendukung Multiple Location jika branch memiliki banyak titik atau relasi tertentu
-        // $office_locations = Branch::where('id', $branch_id)->get();
-        $employee_locations = DB::table('employee_location')->join('locations', 'employee_location.location_id', '=', 'locations.id')->where('employee_location.employee_id', $nik)->where('locations.is_active', 1)->select('locations.latitude', 'locations.longitude', 'locations.radius', 'locations.name')->get();
-
-        $date = date('Y-m-d');
-        $time_now = \Carbon\Carbon::now()->format('H:i:s');
         $nama_hari = $this->gethari();
 
         $lokasi = $request->lokasi;
-        $userLocation = explode(',', $lokasi);
-        $latUser = $userLocation[0];
-        $longUser = $userLocation[1];
+        $image = $request->image;
 
-        // 2. Logika Pengecekan Radius (Bypass jika Free Absen)
+        // 1. Query Jadwal (Sama seperti SQL manual Anda)
+        $jam_kerja = DB::table('working_hour_dept_detail as whdd')
+            ->join('working_hour_dept as whd', 'whdd.whd_id', '=', 'whd.id')
+            ->join('working_hours as wh', 'whdd.workinghour_id', '=', 'wh.id')
+            ->join('departements as d', 'whd.dept_code', '=', 'd.id')
+            ->join('branches as b', 'whd.branch_code', '=', 'b.id')
+            ->join('positions as p', 'd.id', '=', 'p.departement_id')
+            ->join('employees as e', function ($join) {
+                $join->on('p.id', '=', 'e.position_id')->on('b.id', '=', 'e.branch_id');
+            })
+            ->where('e.id', $nik)
+            ->where('whdd.days', $nama_hari)
+            ->select('whdd.id as detail_id', 'wh.entry_time', 'wh.out_time', 'e.first_name', 'e.mobile', 'e.is_free_absent')
+            ->first();
+
+        if (!$jam_kerja) {
+            echo "error|Jadwal kerja tidak ditemukan untuk hari $nama_hari.";
+            return;
+        }
+
+        // --- LOGIKA RADIUS (Multi-Location) ---
+        $userLoc = explode(',', $lokasi);
+        $latUser = $userLoc[0];
+        $longUser = $userLoc[1];
+
+        // Ambil semua lokasi yang ditugaskan ke karyawan ini
+        $allowed_locations = DB::table('employee_location')->join('locations', 'employee_location.location_id', '=', 'locations.id')->where('employee_location.employee_id', $nik)->where('locations.is_active', 1)->select('locations.latitude', 'locations.longitude', 'locations.radius', 'locations.name')->get();
+
         $in_radius = false;
         $min_distance = 0;
-        $checked_locations = 0;
 
-        if ($is_free_absen == 1) {
-            $in_radius = true;
-        } else {
-            foreach ($employee_locations as $loc) {
-                $checked_locations++; // Jangan lupa tambahkan increment ini agar proteksi di bawah jalan
+        // Jika karyawan tidak bebas absen, lakukan pengecekan
+        if ($jam_kerja->is_free_absent != 1) {
+            if ($allowed_locations->isEmpty()) {
+                echo 'error|Anda belum didaftarkan di lokasi manapun. Hubungi Admin.';
+                return;
+            }
 
-                // GANTI LOGIKA EXPLODE DENGAN LANGSUNG MENGGUNAKAN LATITUDE & LONGITUDE
-                // Karena di DB kolomnya terpisah, kita tidak perlu explode lagi
-                $latOffice = $loc->latitude;
-                $longOffice = $loc->longitude;
+            foreach ($allowed_locations as $loc) {
+                $jarak = $this->distance($loc->latitude, $loc->longitude, $latUser, $longUser);
+                $meters = round($jarak['meters']);
 
-                // Masukkan langsung ke fungsi distance
-                $jarak = $this->distance($latOffice, $longOffice, $latUser, $longUser);
-                $radius_meters = round($jarak['meters']);
-
-                if ($radius_meters <= $loc->radius) {
+                if ($meters <= $loc->radius) {
                     $in_radius = true;
                     break;
                 }
 
-                if ($min_distance == 0 || $radius_meters < $min_distance) {
-                    $min_distance = $radius_meters;
+                if ($min_distance == 0 || $meters < $min_distance) {
+                    $min_distance = $meters;
                 }
             }
 
-            // Proteksi jika data di tabel employee_location kosong
-            if ($checked_locations == 0 && $is_free_absen == 0) {
-                echo 'error|Anda belum didaftarkan di lokasi manapun. Hubungi Admin.';
+            if (!$in_radius) {
+                echo 'error|Diluar Radius! Jarak terdekat Anda adalah ' . $min_distance . ' meter dari titik lokasi yang diizinkan.';
                 return;
             }
         }
+        // --------------------------------------
 
-        $jam_kerja = WorkingDay::where('employee_id', $nik)->where('days', $nama_hari)->with('workinghours')->first();
-
-        $image = $request->image;
-        $folderPath = 'absensi/';
+        $date = date('Y-m-d');
+        $time_now = date('H:i:s');
         $cek = DB::table('presences')->where('date', $date)->where('employee_id', $nik)->count();
-
         $ket = $cek > 0 ? 'out' : 'in';
-        $formatName = $nik . '-' . $date . '-' . $ket;
-        $image_parts = explode(';base64', $image);
-        $image_base64 = base64_decode($image_parts[1]);
-        $fileName = $formatName . '.png';
-        $file = $folderPath . $fileName;
+        $fileName = $nik . '-' . $date . '-' . $ket . '.png';
+        $folderPath = 'absensi/';
 
         try {
-            // 3. Eksekusi Berdasarkan Hasil Pengecekan Radius
-            if (!$in_radius) {
-                echo 'Error_radius|Maaf Anda Berada Diluar Radius, Jarak Anda ' . $min_distance . ' meter dari kantor';
-            } else {
-                if ($cek > 0) {
-                    // LOGIKA ABSEN PULANG
-                    $data_pulang = [
+            if ($cek > 0) {
+                // LOGIKA PULANG
+                DB::table('presences')
+                    ->where('date', $date)
+                    ->where('employee_id', $nik)
+                    ->update([
                         'time_out' => $time_now,
                         'photo_out' => $fileName,
                         'location_out' => $lokasi,
-                    ];
-                    DB::table('presences')->where('date', $date)->where('employee_id', $nik)->update($data_pulang);
-
-                    // Kirim WA Pulang
-                    $isi_pesan = "✅ *PRESENSI PULANG BERHASIL*\n\n" . 'Nama: *' . $employee->first_name . ' ' . $employee->last_name . "*\n" . 'Jam: ' . $time_now . " WIB\n" . 'Status: ' . ($is_free_absen ? 'Free Absent' : 'In Radius') . "\n\n" . 'Hati-hati di jalan!';
-                    $this->sendWA($employee->mobile, $isi_pesan);
-
-                    Storage::disk('public')->put($file, $image_base64);
-                    echo 'success|Terimakasih, Anda Berhasil Absen Pulang|out';
-                } else {
-                    // LOGIKA ABSEN MASUK
-                    $data = [
-                        'employee_id' => $nik,
-                        'date' => $date,
-                        'time_in' => $time_now,
-                        'photo_in' => $fileName,
-                        'location_in' => $lokasi,
-                        'working_day_id' => $jam_kerja->id,
-                        'status' => 'H',
-                    ];
-                    Presence::create($data);
-
-                    // Kirim WA Masuk
-                    $isi_pesan = "✅ *PRESENSI MASUK BERHASIL*\n\n" . 'Nama: *' . $employee->first_name . ' ' . $employee->last_name . "*\n" . 'Jam: ' . $time_now . " WIB\n" . 'Status: ' . ($is_free_absen ? 'Free Absent' : 'In Radius') . "\n\n" . 'Selamat bekerja!';
-                    $this->sendWA($employee->mobile, $isi_pesan);
-
-                    Storage::disk('public')->put($file, $image_base64);
-                    echo 'success|Terimakasih Anda Berhasil Absen Masuk|in';
-                }
+                    ]);
+                $msg = 'Absen PULANG berhasil!';
+            } else {
+                // LOGIKA MASUK
+                DB::table('presences')->insert([
+                    'employee_id' => $nik,
+                    'date' => $date,
+                    'time_in' => $time_now,
+                    'photo_in' => $fileName,
+                    'location_in' => $lokasi,
+                    'working_day_id' => $jam_kerja->detail_id,
+                    'status' => 'H',
+                ]);
+                $msg = 'Absen MASUK berhasil!';
             }
-        } catch (\Throwable $th) {
-            echo 'error|Maaf, terjadi kesalahan: ' . $th->getMessage();
+
+            $this->saveImage($image, $folderPath . $fileName);
+            $this->sendWA($jam_kerja->mobile, "✅ $msg\nNama: $jam_kerja->first_name\nJam: $time_now");
+            echo "success|$msg|" . ($cek > 0 ? 'out' : 'in');
+        } catch (\Exception $e) {
+            echo 'error|Terjadi kesalahan sistem: ' . $e->getMessage();
+        }
+    }
+
+    /**
+     * Helper untuk menyimpan Base64 ke Storage
+     */
+    private function saveImage($base64Image, $fullPath)
+    {
+        if ($base64Image) {
+            $image_parts = explode(';base64,', $base64Image);
+            $image_base64 = base64_decode($image_parts[1]);
+            Storage::disk('public')->put($fullPath, $image_base64);
         }
     }
 
     /**
      * Buat fungsi private agar kode lebih bersih
      */
+    // private function sendWA($nomor, $pesan)
+    // {
+    //     $curl = curl_init();
+    //     curl_setopt_array($curl, [
+    //         CURLOPT_URL => 'https://wagateway.dinastikreatifindonesia.com/send-message',
+    //         CURLOPT_RETURNTRANSFER => true,
+    //         CURLOPT_ENCODING => '',
+    //         CURLOPT_MAXREDIRS => 10,
+    //         CURLOPT_TIMEOUT => 0,
+    //         CURLOPT_FOLLOWLOCATION => true,
+    //         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    //         CURLOPT_CUSTOMREQUEST => 'POST',
+    //         CURLOPT_POSTFIELDS => [
+    //             'message' => $pesan,
+    //             'number' => $nomor,
+    //             'file_dikirim' => '',
+    //         ],
+    //     ]);
+    //     $response = curl_exec($curl);
+    //     // dd($response);
+    //     curl_close($curl);
+    //     return $response;
+    // }
     private function sendWA($nomor, $pesan)
     {
+        // Hilangkan karakter non-digit (spasi, +, -, dll)
+        $nomor = preg_replace('/[^0-9]/', '', $nomor);
+
+        // Konversi 08... menjadi 628...
+        if (substr($nomor, 0, 1) === '0') {
+            $nomor = '62' . substr($nomor, 1);
+        }
+
         $curl = curl_init();
         curl_setopt_array($curl, [
             CURLOPT_URL => 'https://wagateway.dinastikreatifindonesia.com/send-message',
@@ -241,15 +273,22 @@ class PresensiController extends Controller
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST => 'POST',
-            CURLOPT_POSTFIELDS => [
+            CURLOPT_POSTFIELDS => http_build_query([
+                // Gunakan http_build_query jika API meminta x-www-form-urlencoded
                 'message' => $pesan,
                 'number' => $nomor,
                 'file_dikirim' => '',
-            ],
+            ]),
         ]);
+
         $response = curl_exec($curl);
-        // dd($response);
+        $err = curl_error($curl);
         curl_close($curl);
+
+        if ($err) {
+            Log::error('WA Gateway Error: ' . $err);
+        }
+
         return $response;
     }
 
@@ -312,7 +351,6 @@ class PresensiController extends Controller
         return view('frontend.presensi.history', compact('nama_bulan'));
     }
 
-
     public function getHistory(Request $request)
     {
         $bulan = $request->bulan;
@@ -371,137 +409,6 @@ class PresensiController extends Controller
         return view('frontend.presensi.pengajuan');
     }
 
-    // public function cektglpengajuan(Request $request)
-    // {
-    //     $user_id = Auth::user()->employee->id;
-    //     $tgl_input = $request->tgl_izin;
-
-    //     // Pastikan input tidak kosong
-    //     if (!$tgl_input) {
-    //         return response()->json(['status' => 'success']);
-    //     }
-
-    //     // Pengecekan Submission
-    //     $cekSubmission = \App\Models\Submission::where('employee_id', $user_id)
-    //         ->where('status', '!=', 2) // Bukan ditolak
-    //         ->where(function ($query) use ($tgl_input) {
-    //             $query
-    //                 ->where(function ($q) use ($tgl_input) {
-    //                     // Skenario A: Tanggal input ada di rentang date s/d end_date
-    //                     $q->whereNotNull('end_date')->where('date', '<=', $tgl_input)->where('end_date', '>=', $tgl_input);
-    //                 })
-    //                 ->orWhere(function ($q) use ($tgl_input) {
-    //                     // Skenario B: end_date NULL, maka cek apakah kolom date sama dengan input
-    //                     $q->whereNull('end_date')->where('date', $tgl_input);
-    //                 })
-    //                 ->orWhere(function ($q) use ($tgl_input) {
-    //                     // Skenario C: Jaga-jaga jika input tepat sama dengan salah satu kolom
-    //                     $q->where('date', $tgl_input)->orWhere('end_date', $tgl_input);
-    //                 });
-    //         })
-    //         ->first();
-
-    //     if ($cekSubmission) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Sudah ada pengajuan pada tanggal tersebut.',
-    //         ]);
-    //     }
-
-    //     // 2. Pengecekan Presensi (Pastikan nama kolom tgl_presensi benar)
-    //     $cekAbsen = DB::table('presences')->where('employee_id', $user_id)->whereDate('date', $tgl_input)->whereNotNull('jam_in')->whereNotNull('jam_out')->exists();
-
-    //     if ($cekAbsen) {
-    //         return response()->json([
-    //             'status' => 'error',
-    //             'message' => 'Absensi sudah lengkap.',
-    //         ]);
-    //     }
-
-    //     return response()->json(['status' => 'success']);
-    // }
-
-// public function cektglpengajuan(Request $request)
-// {
-//     // Pastikan user terautentikasi dan memiliki relasi employee
-//     if (!Auth::check() || !Auth::user()->employee) {
-//         return response()->json(['status' => 'error', 'message' => 'Sesi berakhir atau data karyawan tidak ditemukan.']);
-//     }
-
-//     $user_id = Auth::user()->employee->id;
-//     $tgl_input = $request->tgl_izin;
-
-//     if (!$tgl_input) {
-//         return response()->json(['status' => 'success']);
-//     }
-
-//     try {
-//         // 1. HANDLE RENTANG TANGGAL (Explode)
-//         // Gunakan trim() dan pengecekan yang lebih fleksibel terhadap kata " to "
-//         if (str_contains($tgl_input, ' to ')) {
-//             // Kita pecah dengan " to " (biasanya flatpickr default pakai 1 spasi kiri-kanan)
-//             $rentang = explode(' to ', $tgl_input);
-//             $tgl_mulai = date('Y-m-d', strtotime(trim($rentang[0])));
-//             $tgl_akhir = date('Y-m-d', strtotime(trim($rentang[1])));
-//         } else {
-//             $tgl_mulai = date('Y-m-d', strtotime(trim($tgl_input)));
-//             $tgl_akhir = $tgl_mulai;
-//         }
-
-//         // 2. CEK SUBMISSION (APAKAH SUDAH ADA IZIN/CUTI?)
-//         $cekSubmission = \App\Models\Submission::where('employee_id', $user_id)
-//             ->where('status', '!=', 2) // Bukan ditolak (0: Pending, 1: Approved)
-//             ->where(function ($query) use ($tgl_mulai, $tgl_akhir) {
-//                 $query->whereBetween('date', [$tgl_mulai, $tgl_akhir])
-//                     ->orWhereBetween('end_date', [$tgl_mulai, $tgl_akhir])
-//                     ->orWhere(function ($q) use ($tgl_mulai, $tgl_akhir) {
-//                         $q->where('date', '<=', $tgl_mulai)
-//                           ->where('end_date', '>=', $tgl_akhir);
-//                     });
-//             })
-//             ->first();
-
-//         if ($cekSubmission) {
-//             return response()->json([
-//                 'status' => 'error',
-//                 'message' => 'Sudah ada pengajuan aktif pada rentang tanggal tersebut (' .
-//                              date('d/m/Y', strtotime($cekSubmission->date)) . ' s/d ' .
-//                              date('d/m/Y', strtotime($cekSubmission->end_date ?? $cekSubmission->date)) . ')',
-//             ]);
-//         }
-
-//         // 3. CEK ABSENSI (Hanya jika condition bukan koreksi presensi)
-//         // Jika sudah ada jam masuk/pulang, tidak boleh timpa dengan Izin/Sakit/Cuti
-//         $cekAbsen = DB::table('presences')
-//             ->where('employee_id', $user_id)
-//             ->whereBetween('date', [$tgl_mulai, $tgl_akhir])
-//             ->where(function ($q) {
-//                 // Mengecek apakah kolom jam masuk atau jam pulang sudah terisi
-//                 $q->where(function($sq) {
-//                     $sq->whereNotNull('time_in')->where('time_in', '!=', '');
-//                 })->orWhere(function($sq) {
-//                     $sq->whereNotNull('time_out')->where('time_out', '!=', '');
-//                 });
-//             })
-//             ->first();
-
-//         if ($cekAbsen) {
-//             $tglTerabsen = date('d/m/Y', strtotime($cekAbsen->date));
-//             return response()->json([
-//                 'status' => 'error',
-//                 'message' => "Gagal! Anda sudah memiliki data absensi pada tanggal $tglTerabsen. Tidak diperbolehkan mengajukan izin pada hari Anda bekerja.",
-//             ]);
-//         }
-
-//         return response()->json(['status' => 'success']);
-
-//     } catch (\Exception $e) {
-//         return response()->json([
-//             'status' => 'error',
-//             'message' => 'Kesalahan sistem: ' . $e->getMessage(),
-//         ]);
-//     }
-// }
 
     public function storeizin(Request $request)
     {
@@ -578,14 +485,27 @@ class PresensiController extends Controller
 
         // 2. Query Data dengan Eager Loading
         $presences = DB::table('presences')
-            ->select('presences.*', 'employees.first_name', 'employees.last_name', 'positions.name as position_name', 'departements.name as departement_name', 'working_hours.entry_time', 'working_hours.name as tipe_jam_kerja')
-            ->join('employees', 'presences.employee_id', '=', 'employees.id')
-            ->join('positions', 'employees.position_id', '=', 'positions.id')
-            ->join('departements', 'positions.departement_id', '=', 'departements.id')
-            ->leftJoin('working_days', 'presences.working_day_id', '=', 'working_days.id')
-            ->leftJoin('working_hours', 'working_days.workinghour_id', '=', 'working_hours.id')
-            ->whereBetween('date', [$tanggalAwalDB, $tanggalAkhirDB])
-            ->get();
+    ->select(
+        'presences.*',
+        'employees.first_name',
+        'employees.last_name',
+        'positions.name as position_name',
+        'departements.name as departement_name',
+        'wh.entry_time',
+        'wh.name as tipe_jam_kerja'
+    )
+    ->join('employees', 'presences.employee_id', '=', 'employees.id')
+    ->join('positions', 'employees.position_id', '=', 'positions.id')
+    ->join('departements', 'positions.departement_id', '=', 'departements.id')
+
+    // GANTI: Hubungkan working_day_id ke detail jadwal departemen
+    ->leftJoin('working_hour_dept_detail as whdd', 'presences.working_day_id', '=', 'whdd.id')
+
+    // GANTI: Hubungkan detail tersebut ke master working_hours
+    ->leftJoin('working_hours as wh', 'whdd.workinghour_id', '=', 'wh.id')
+
+    ->whereBetween('presences.date', [$tanggalAwalDB, $tanggalAkhirDB])
+    ->get();
         // dd($presences);
         // 3. Kembalikan View (HTML yang akan dimasukkan ke #loadpresensi)
         return view('frontend.presensi.getpresensi', compact('presences'));
@@ -606,7 +526,7 @@ class PresensiController extends Controller
         return view('frontend.presensi.reportpresence', compact('nama_bulan', 'employees'));
     }
 
-    public function cetakreport(Request $request)
+    public function printReportPerEmployee(Request $request)
     {
         $id = $request->id;
         $bulan = $request->bulan;
@@ -629,7 +549,6 @@ class PresensiController extends Controller
 
         return view('frontend.presensi.cetakReport', $data);
     }
-
 
     public function rekapPresence(Request $request)
     {
@@ -851,83 +770,89 @@ class PresensiController extends Controller
         return view('frontend.presensi.submission', compact('submissions'));
     }
 
-   public function updateStatus(Request $request, $id)
-{
-    $request->validate(['status' => 'required|in:1,2']);
+    public function updateStatus(Request $request, $id)
+    {
+        $request->validate(['status' => 'required|in:1,2']);
 
-    try {
-        DB::transaction(function () use ($request, $id) {
-            // 1. Ambil & Lock data
-            $submission = DB::table('submissions')->where('id', $id)->lockForUpdate()->first();
+        try {
+            DB::transaction(function () use ($request, $id) {
+                // 1. Ambil & Lock data
+                $submission = DB::table('submissions')->where('id', $id)->lockForUpdate()->first();
 
-            if (!$submission) throw new \Exception('Data tidak ditemukan.');
-            if ($submission->status != '0') throw new \Exception('Data sudah diproses.');
-
-            // 2. Jika Status disetujui (Approved)
-            if ($request->status == '1') {
-
-                // --- KONDISI 5: KOREKSI PRESENSI (Update Tabel Presences) ---
-                if ($submission->condition == '5') {
-                    DB::table('presences')->updateOrInsert(
-                        [
-                            'employee_id' => $submission->employee_id,
-                            'date'        => $submission->date
-                        ],
-                        [
-                            'time_in'    => $submission->jam_in_pengajuan ?? '',
-                            'time_out'   => $submission->jam_out_pengajuan ?? '',
-                            'status'     => 'P', // P = Hadir
-                            'updated_at' => now(),
-                        ]
-                    );
+                if (!$submission) {
+                    throw new \Exception('Data tidak ditemukan.');
+                }
+                if ($submission->status != '0') {
+                    throw new \Exception('Data sudah diproses.');
                 }
 
-                // --- KONDISI 1, 2, 3, 4: IZIN, SAKIT, CUTI ---
-                else {
-                    // Jika ini adalah CUTI (Condition 4), potong kuota
-                    if ($submission->condition == '4') {
-                        $emp = DB::table('employees')->where('id', $submission->employee_id)->first();
-                        $jml_hari = $submission->total_days;
-
-                        $bulan = date('n');
-                        $sisa_lalu = ($bulan <= 3) ? ($emp->kuota_tahun_lalu ?? 0) : 0;
-                        $sisa_ini = $emp->kuota_tahun_ini ?? 0;
-
-                        if ($jml_hari > ($sisa_lalu + $sisa_ini)) {
-                            throw new \Exception("Kuota tidak mencukupi (Sisa: " . ($sisa_lalu + $sisa_ini) . " hari).");
-                        }
-
-                        if ($sisa_lalu >= $jml_hari) {
-                            $new_lalu = $sisa_lalu - $jml_hari;
-                            $new_ini = $sisa_ini;
-                        } else {
-                            $new_ini = $sisa_ini - ($jml_hari - $sisa_lalu);
-                            $new_lalu = 0;
-                        }
-
-                        DB::table('employees')->where('id', $emp->id)->update([
-                            'kuota_tahun_lalu' => $new_lalu,
-                            'kuota_tahun_ini'  => $new_ini,
-                            'updated_at'       => now(),
-                        ]);
+                // 2. Jika Status disetujui (Approved)
+                if ($request->status == '1') {
+                    // --- KONDISI 5: KOREKSI PRESENSI (Update Tabel Presences) ---
+                    if ($submission->condition == '5') {
+                        DB::table('presences')->updateOrInsert(
+                            [
+                                'employee_id' => $submission->employee_id,
+                                'date' => $submission->date,
+                            ],
+                            [
+                                'time_in' => $submission->jam_in_pengajuan ?? '',
+                                'time_out' => $submission->jam_out_pengajuan ?? '',
+                                'status' => 'P', // P = Hadir
+                                'updated_at' => now(),
+                            ],
+                        );
                     }
 
-                    // Note: Tidak ada insert ke tabel 'presences' di sini sesuai permintaan Anda.
+                    // --- KONDISI 1, 2, 3, 4: IZIN, SAKIT, CUTI ---
+                    else {
+                        // Jika ini adalah CUTI (Condition 4), potong kuota
+                        if ($submission->condition == '4') {
+                            $emp = DB::table('employees')->where('id', $submission->employee_id)->first();
+                            $jml_hari = $submission->total_days;
+
+                            $bulan = date('n');
+                            $sisa_lalu = $bulan <= 3 ? $emp->kuota_tahun_lalu ?? 0 : 0;
+                            $sisa_ini = $emp->kuota_tahun_ini ?? 0;
+
+                            if ($jml_hari > $sisa_lalu + $sisa_ini) {
+                                throw new \Exception('Kuota tidak mencukupi (Sisa: ' . ($sisa_lalu + $sisa_ini) . ' hari).');
+                            }
+
+                            if ($sisa_lalu >= $jml_hari) {
+                                $new_lalu = $sisa_lalu - $jml_hari;
+                                $new_ini = $sisa_ini;
+                            } else {
+                                $new_ini = $sisa_ini - ($jml_hari - $sisa_lalu);
+                                $new_lalu = 0;
+                            }
+
+                            DB::table('employees')
+                                ->where('id', $emp->id)
+                                ->update([
+                                    'kuota_tahun_lalu' => $new_lalu,
+                                    'kuota_tahun_ini' => $new_ini,
+                                    'updated_at' => now(),
+                                ]);
+                        }
+
+                        // Note: Tidak ada insert ke tabel 'presences' di sini sesuai permintaan Anda.
+                    }
                 }
-            }
 
-            // 3. Update status utama di tabel submissions
-            DB::table('submissions')->where('id', $id)->update([
-                'status'     => $request->status,
-                'updated_at' => now(),
-            ]);
-        });
+                // 3. Update status utama di tabel submissions
+                DB::table('submissions')
+                    ->where('id', $id)
+                    ->update([
+                        'status' => $request->status,
+                        'updated_at' => now(),
+                    ]);
+            });
 
-        $msg = $request->status == '1' ? 'Pengajuan berhasil disetujui.' : 'Pengajuan telah ditolak.';
-        return back()->with('success', $msg);
-
-    } catch (\Exception $e) {
-        return back()->with('error', 'Gagal: ' . $e->getMessage());
+            $msg = $request->status == '1' ? 'Pengajuan berhasil disetujui.' : 'Pengajuan telah ditolak.';
+            return back()->with('success', $msg);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Gagal: ' . $e->getMessage());
+        }
     }
-}
 }

@@ -16,8 +16,6 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->text('address');
-            $table->text('location');
-            $table->text('radius');
             $table->boolean('is_free_location')->default(0)->after('radius');
             $table->string('meal_allowance');
             $table->timestamps();

@@ -185,7 +185,7 @@ Route::middleware(['auth', 'can:holidays.permission'])->group(function () {
 
 Route::middleware(['auth', 'can:reportpresences.permission'])->group(function () {
     Route::get('/reportpresences', [PresensiController::class, 'reportPresence'])->name('reportPresence.index');
-    Route::post('/cetakreport', [PresensiController::class, 'cetakreport'])->name('report.cetak');
+    Route::post('/cetakreportemployee', [PresensiController::class, 'printReportPerEmployee'])->name('report.cetak');
 });
 
 Route::middleware(['auth', 'can:recaps.permission'])->group(function () {
