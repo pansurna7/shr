@@ -1,102 +1,132 @@
 @extends('backend.layouts.app')
-@section('title','Edit')
-@push('css')
-    <style>
-        .dropify-wrapper .dropify-message p{
-                font-size: initial;
-            }
-    </style>
-@endpush
-@section('content')
+@section('title', 'System Settings')
 
-    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-3">
-        <div class="breadcrumb-title pe-3">Setting System</div>
+@section('content')
+    <div class="page-breadcrumb d-none d-sm-flex align-items-center mb-4">
+        <div class="breadcrumb-title pe-3">Configuration</div>
         <div class="ps-3">
             <nav aria-label="breadcrumb">
                 <ol class="breadcrumb mb-0 p-0">
-                    <li class="breadcrumb-item"><a href="{{ route('settings.index') }}"><i class="bx bx-user-circle"></i></a>
-                    </li>
-                    <li class="breadcrumb-item active" aria-current="page">@yield('title')</li>
+                    <li class="breadcrumb-item"><a href="{{ route('settings.index') }}"><i class="bx bx-cog"></i></a></li>
+                    <li class="breadcrumb-item active" aria-current="page">System Settings</li>
                 </ol>
             </nav>
         </div>
     </div>
 
-    <!--end breadcrumb-->
-    <hr/>
-    <div class="card">
-        <div class="card-body">
-            <div class="card border-top border-0 border-4 border-white">
-                <div class="card-body">
-                    <div class="border p-4 rounded">
-                        <div class="card-title d-flex align-items-center">
-                            <div><i class="bx bx-cog me-1 font-22 text-white"></i>
-                            </div>
-                            <h5 class="mb-0 text-white">Edit System</h5>
-                        </div>
-                        <hr>
-                        <form method="POST" action="{{ route('settings.update', $setting->id ?? 1) }}" enctype="multipart/form-data">
-                            @csrf
-                            @include('backend.settings.form')
-                            <div class="row mt-10">
-                                <label class="col-sm-3 col-form-label"></label>
-                                <div class="text-center">
-                                    @can('setting.update')
-                                        <button type="submit" class="btn btn-light px-5" id="btnSave"><i class="bx bx-save"></i>Save</button>
-                                        <a type="btn btn-light" href="" class="btn btn-light px-5" id="btnEdit"><i class="bx bx-edit"></i>Edit</a>
-                                    @endcan
-                                    <a type="btn btn-light" href="{{route('settings.index')}}" class="btn btn-light px-5" id="btnCancel"><i class="lni lni-arrow-left-circle"></i>Back</a>
+    <div class="row">
+        <div class="col-xl-11 mx-auto">
+            <form method="POST" action="{{ route('settings.update', $setting->id ?? 1) }}" enctype="multipart/form-data"
+                id="settingForm">
+                @csrf
+                @method('PUT')
+
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <div class="p-2 bg-light-info text-info rounded-3 me-3">
+                                    <i class="bx bx-save font-24"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-0">General Settings</h5>
+                                    <small class="text-muted">Update your system identity and branding</small>
                                 </div>
                             </div>
-                        </form>
+                            <div>
+                                <a href="{{ route('settings.index') }}" class="btn btn-outline-secondary btn-sm px-3"><i
+                                        class="bx bx-arrow-back"></i> Back</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <div class="row">
+                            <div class="col-lg-7 border-end pe-lg-4">
+                                <div class="row g-4">
+                                    @include('backend.settings.form')
+                                </div>
+                            </div>
+
+                            <div class="col-lg-5 ps-lg-4">
+                                <label class="form-label fw-bold mb-2">System Logo</label>
+                                <p class="small text-muted mb-3">Recommended size 512x512px (PNG/JPG)</p>
+
+                                <input type="file" name="logo" id="logo" class="dropify"
+                                    data-default-file="{{ isset($setting->logo) ? asset('storage/' . $setting->logo) : '' }}"
+                                    data-height="230">
+
+                                <input type="hidden" name="oldLogo" value="{{ $setting->logo ?? '' }}">
+
+                                @error('logo')
+                                    <div class="text-danger small mt-2">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-footer bg-light-50 border-0 p-4 text-end">
+                        @can('setting.update')
+                            <button type="button" class="btn btn-warning px-4 py-2" id="btnEdit">
+                                <i class="bx bx-edit-alt"></i> Unlock to Edit
+                            </button>
+                            <button type="submit" class="btn btn-primary px-5 py-2 d-none" id="btnSave">
+                                <i class="bx bx-check-double"></i> Save Changes
+                            </button>
+                        @endcan
                     </div>
                 </div>
-            </div>
+            </form>
         </div>
     </div>
 @endsection
 @push('scripts')
     <script>
-        $(document).ready(function () {
-            $("#name").prop('readonly', true);
-            $("#logo").prop('disabled', true);
-            $("#btnSave").prop('disabled', true);
+        $(document).ready(function() {
+            // State awal: Readonly
+            toggleFields(true);
 
-            $('.dropify').prop("disabled=disabled");
-
-            $("#btnEdit").click(function (e) {
-                e.preventDefault();
-                $("#name").prop('readonly', false);
-                $("#logo").prop('disabled', false);
-                $("#btnSave").prop('disabled', false);
-                $('.dropify').removeAttr("disabled=disabled");
+            $("#btnEdit").click(function() {
+                toggleFields(false);
+                $(this).addClass('d-none'); // Sembunyikan tombol edit
+                $("#btnSave").removeClass('d-none'); // Munculkan tombol save
             });
 
-            $(".dropify").dropify()
-        });
-        // function priviewImage(){
-        //     const logo = document.querySelector("#logo");
-        //     const imgPriview = document.querySelector(".img-preview");
+            function toggleFields(isReadOnly) {
+                // Targetkan input teks dan textarea
+                $("#settingForm input, #settingForm textarea, #settingForm select").not("#btnEdit").prop('readonly',
+                    isReadOnly);
 
-        //     imgPriview.style.display = 'block';
+                // Dropify dan checkbox/radio perlu disabled
+                if (isReadOnly) {
+                    $("#logo").attr('disabled', 'disabled');
+                    $(".dropify-wrapper").css("pointer-events", "none").css("opacity", "0.8");
+                } else {
+                    $("#logo").removeAttr('disabled');
+                    $(".dropify-wrapper").css("pointer-events", "auto").css("opacity", "1");
+                    $("#name").focus();
+                }
+            }
 
-        //     const oFReader = new FileReader();
-        //     oFReader.readAsDataURL(logo.files[0]);
+            // Dropify Initialization
+            $('.dropify').dropify({
+                messages: {
+                    'default': 'Drag and drop logo or click',
+                    'replace': 'Drag and drop or click to replace',
+                    'remove': 'Remove',
+                    'error': 'Oops, something wrong happened.'
+                }
+            });
 
-        //     // pada saat di load
-        //     oFReader.onload = function(oFREvent){
-        //         imgPriview.src = oFREvent.target.result;
-        //     }
-        // }
-        // auto fill slug
-        $('#name').keyup(function() {
-            var title = $(this).val();
-            var slug = title.toLowerCase()
-                            .replace(/[^a-z0-9 -]/g, '') // Remove invalid characters
-                            .replace(/\s+/g, '-')       // Replace spaces with hyphens
-                            .replace(/-+/g, '-');      // Replace multiple hyphens with single
-
-            $('#slug').val(slug);
+            // Auto-slugify yang lebih bersih
+            $('#name').on('input', function() {
+                if (!$(this).prop('readonly')) {
+                    let slug = $(this).val().toLowerCase()
+                        .replace(/[^\w ]+/g, '')
+                        .replace(/ +/g, '-');
+                    $('#slug').val(slug);
+                }
+            });
         });
     </script>
 @endpush
