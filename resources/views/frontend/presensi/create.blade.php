@@ -66,26 +66,29 @@
         }
 
         .webcam-capture,
-        .webcam-capture video {
-            width: 100% !important;
-            height: auto !important;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            /* border: 2px solid #fff; */
-        }
+.webcam-capture video {
+    width: 100% !important;
+    /* Gunakan aspect-ratio 16:9 agar lebih lebar ke samping (seperti layar bioskop) */
+    aspect-ratio: 16 / 9; 
+    height: auto !important; 
+    /* Batasi tinggi maksimal agar tidak menelan layar di HP kecil */
+    max-height: 250px !important; 
+    object-fit: cover; 
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    transform: scaleX(-1); /* Efek cermin */
+}
 
-        /* Info Card Melayang */
-        .attendance-card {
-            background: rgba(255, 255, 255, 0.98);
-            border-radius: 15px;
-            padding: 15px;
-            margin-top: -60px;
-            /* Kurangi dari -60px ke -30px agar lebih naik */
-            position: relative;
-            z-index: 10;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-        }
-
+/* Kurangi margin pada card agar tidak terlalu menumpuk ke kamera yang sudah pendek */
+.attendance-card {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 15px;
+    padding: 15px;
+    margin-top: -20px; /* Ubah dari -60px ke -20px */
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
         .shift-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -228,14 +231,14 @@
     <script>
         // Konfigurasi Kamera
         Webcam.set({
-            height: 480,
-            width: 640,
-            image_format: "jpeg",
-            jpeg_quality: 80,
-            constraints: {
-                facingMode: 'user'
-            }
-        });
+    width: 640,
+    height: 480, // Resolusi internal (tidak mempengaruhi ukuran tampilan CSS)
+    image_format: "jpeg",
+    jpeg_quality: 80,
+    constraints: {
+        facingMode: 'user'
+    }
+});
         Webcam.attach('.webcam-capture');
 
         var lokasiInput = document.getElementById('lokasi');

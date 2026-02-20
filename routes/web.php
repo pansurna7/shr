@@ -80,7 +80,8 @@ Route::middleware(['auth', 'can:users.permission'])->group(function () {
 
 Route::middleware(['auth', 'can:settings.permission'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index'])->name('settings.index');
-    Route::post('/update', [SettingController::class, 'update'])->name('settings.update');
+    // Route::post('/update', [SettingController::class, 'update'])->name('settings.update');
+    Route::put('/settings/{id}', [SettingController::class, 'update'])->name('settings.update');
 });
 Route::middleware(['auth', 'can:menus.permission'])->group(function () {
     Route::get('/menus', [MenuController::class, 'index'])->name('menus.index');

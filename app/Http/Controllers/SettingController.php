@@ -36,8 +36,9 @@ class SettingController extends Controller
     //         return back()->withErrors($e->validator)->withInput();
     //     }
     // }
-    public function update(Request $request)
+    public function update(Request $request, $id)
 {
+    $setting = Settings::findOrFail($id);
     try {
         $validate = $request->validate([
             'name' => 'required',
