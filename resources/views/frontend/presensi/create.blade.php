@@ -66,29 +66,32 @@
         }
 
         .webcam-capture,
-.webcam-capture video {
-    width: 100% !important;
-    /* Gunakan aspect-ratio 16:9 agar lebih lebar ke samping (seperti layar bioskop) */
-    aspect-ratio: 16 / 9; 
-    height: auto !important; 
-    /* Batasi tinggi maksimal agar tidak menelan layar di HP kecil */
-    max-height: 250px !important; 
-    object-fit: cover; 
-    border-radius: 15px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    transform: scaleX(-1); /* Efek cermin */
-}
+        .webcam-capture video {
+            width: 100% !important;
+            /* Gunakan aspect-ratio 16:9 agar lebih lebar ke samping (seperti layar bioskop) */
+            aspect-ratio: 16 / 9;
+            height: auto !important;
+            /* Batasi tinggi maksimal agar tidak menelan layar di HP kecil */
+            max-height: 250px !important;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: scaleX(-1);
+            /* Efek cermin */
+        }
 
-/* Kurangi margin pada card agar tidak terlalu menumpuk ke kamera yang sudah pendek */
-.attendance-card {
-    background: rgba(255, 255, 255, 0.98);
-    border-radius: 15px;
-    padding: 15px;
-    margin-top: -20px; /* Ubah dari -60px ke -20px */
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
+        /* Kurangi margin pada card agar tidak terlalu menumpuk ke kamera yang sudah pendek */
+        .attendance-card {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: -20px;
+            /* Ubah dari -60px ke -20px */
+            position: relative;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
         .shift-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -227,18 +230,18 @@
         <source src="{{ asset('assets/frontend/assets/sound/notif_error_radius.mp3') }}" type="audio/mpeg">
     </audio>
 @endsection
-@push('scripts')
+{{-- @push('scripts')
     <script>
         // Konfigurasi Kamera
         Webcam.set({
-    width: 640,
-    height: 480, // Resolusi internal (tidak mempengaruhi ukuran tampilan CSS)
-    image_format: "jpeg",
-    jpeg_quality: 80,
-    constraints: {
-        facingMode: 'user'
-    }
-});
+            width: 640,
+            height: 480, // Resolusi internal (tidak mempengaruhi ukuran tampilan CSS)
+            image_format: "jpeg",
+            jpeg_quality: 80,
+            constraints: {
+                facingMode: 'user'
+            }
+        });
         Webcam.attach('.webcam-capture');
 
         var lokasiInput = document.getElementById('lokasi');
@@ -385,5 +388,194 @@
             setTimeout(jam, 1000);
         }
         document.addEventListener('DOMContentLoaded', jam);
+    </script>
+@endpush --}}
+@push('scripts')
+    <script>
+        // Konfigurasi Kamera
+        Webcam.set({
+            width: 640,
+            height: 480,
+            image_format: "jpeg",
+            jpeg_quality: 80,
+            constraints: {
+                facingMode: 'user'
+            }
+        });
+        Webcam.attach('.webcam-capture');
+
+        var lokasiInput = document.getElementById('lokasi');
+        var map = null;
+        function getGeolocation() {
+            if (navigator.geolocation) {
+                // Percobaan Pertama
+                navigator.geolocation.getCurrentPosition(successCallback, function(error) {
+                    // Jika gagal percobaan pertama, console log dan coba lagi (Retry)
+                    console.log("GPS Retry... percobaan kedua sedang berjalan");
+
+                    navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+                        enableHighAccuracy: true,
+                        timeout: 10000
+                    });
+                }, {
+                    enableHighAccuracy: true,
+                    timeout: 10000 // Timeout awal 10 detik
+                });
+            }
+        }
+
+        // --- PANGGIL FUNGSINYA SAAT HALAMAN DIBUKA ---
+        document.addEventListener('DOMContentLoaded', function() {
+            getGeolocation(); // Panggil fungsi di atas
+            jam();
+        });
+        // --- FUNGSI GPS OPTIMASI WEBVIEW ---
+        // function getLokasi() {
+        //     if (navigator.geolocation) {
+        //         // Gunakan timeout lebih panjang (15 detik) untuk WebView
+        //         navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+        //             enableHighAccuracy: true,
+        //             timeout: 15000,
+        //             maximumAge: 0
+        //         });
+        //     } else {
+        //         Swal.fire("Error", "Browser tidak mendukung Geolocation", "error");
+        //     }
+        // }
+
+        function successCallback(position) {
+            var userLat = position.coords.latitude;
+            var userLong = position.coords.longitude;
+            lokasiInput.value = userLat + "," + userLong;
+
+            if (map !== null) {
+                map.remove();
+            }
+
+            map = L.map('map', {
+                zoomControl: false,
+                attributionControl: false
+            }).setView([userLat, userLong], 16);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+            var userIcon = L.divIcon({
+                className: 'user-icon',
+                html: '<div style="background:#6236FF;width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 10px rgba(0,0,0,0.5);"></div>',
+                iconSize: [14, 14]
+            });
+
+            var userMarker = L.marker([userLat, userLong], { icon: userIcon }).addTo(map);
+
+            var isFreeAbsen = @json($is_free_absen);
+            var locations = @json($employee_locations);
+
+            if (isFreeAbsen == 1 || isFreeAbsen == true) {
+                userMarker.bindPopup("<b>Mode Free Absensi Aktif</b>").openPopup();
+            }
+
+            if (locations && locations.length > 0) {
+                locations.forEach(function(loc) {
+                    var latOffice = parseFloat(loc.latitude);
+                    var longOffice = parseFloat(loc.longitude);
+                    var radOffice = parseInt(loc.radius);
+
+                    if (!isNaN(latOffice) && !isNaN(longOffice)) {
+                        L.circle([latOffice, longOffice], {
+                            color: '#FF396F',
+                            fillColor: '#FF396F',
+                            fillOpacity: 0.2,
+                            radius: radOffice
+                        }).addTo(map);
+
+                        L.marker([latOffice, longOffice]).addTo(map)
+                            .bindPopup("<b>" + loc.name + "</b><br>Radius: " + radOffice + "m");
+                    }
+                });
+            }
+        }
+
+        function errorCallback(error) {
+            // Jika gagal karena timeout, coba lagi sekali secara otomatis
+            if (error.code === 3) {
+                console.warn("GPS Timeout, mencoba kembali...");
+                getLokasi();
+            } else {
+                Swal.fire("GPS Error", "Gagal mendapatkan lokasi. Pastikan GPS aktif dan izin diberikan.", "error");
+            }
+        }
+
+        // Jalankan GPS saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', function() {
+            // Beri jeda 1 detik agar WebView siap
+            setTimeout(getLokasi, 1000);
+            jam();
+        });
+
+        // --- SCRIPT SIMPAN ABSEN (AJAX) ---
+        $("#takeAbsen").click(function(e) {
+            e.preventDefault();
+            let btn = $(this);
+            let originalText = btn.html();
+
+            let koordinat = $("#lokasi").val();
+
+            // PENTING: Jika koordinat kosong, coba pancing GPS lagi sebelum stop
+            if (!koordinat) {
+                getLokasi();
+                Swal.fire("Sinyal Lemah", "Sedang mencari koordinat GPS, silakan coba klik lagi dalam 3 detik.", "warning");
+                return;
+            }
+
+            Webcam.snap(function(uri) {
+                image = uri;
+            });
+
+            btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span> MEMPROSES...');
+
+            $.ajax({
+                type: "POST",
+                url: "/presensi/store",
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    image: image,
+                    lokasi: koordinat
+                },
+                success: function(response) {
+                    let status = response.split("|");
+                    if (status[0] == "success") {
+                        status[2] == "in" ? document.getElementById('notif_in').play() : document.getElementById('notif_out').play();
+                        Swal.fire({
+                            title: "Success",
+                            text: status[1],
+                            icon: "success",
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            location.href = '/frontend/dashboards';
+                        });
+                    } else {
+                        status[0] == "Error_radius" ? document.getElementById('notif_error_radius').play() : document.getElementById('notif_error').play();
+                        Swal.fire("Gagal", status[1], "error");
+                        btn.prop('disabled', false).html(originalText);
+                    }
+                },
+                error: function() {
+                    Swal.fire("Error", "Gagal menghubungi server.", "error");
+                    btn.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+
+        function jam() {
+            var e = document.getElementById('time-text');
+            if (!e) return;
+            var d = new Date(),
+                h = String(d.getHours()).padStart(2, '0'),
+                m = String(d.getMinutes()).padStart(2, '0'),
+                s = String(d.getSeconds()).padStart(2, '0');
+            e.innerText = h + ':' + m + ':' + s;
+            setTimeout(jam, 1000);
+        }
     </script>
 @endpush
