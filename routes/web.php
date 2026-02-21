@@ -23,16 +23,17 @@ use App\Http\Controllers\UserController;
 use App\Models\Menu;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmployeeController;
-use App\Http\Controllers\FrontEnd\MonitoringController;
+// use App\Http\Controllers\FrontEnd\MonitoringController;
 use App\Http\Controllers\FrontEnd\SubmissionIzinController;
 use App\Http\Controllers\WorkingHoursDeptController;
-use App\Models\WorkingHours;
+// use App\Models\WorkingHours;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\MutationController;
 use App\Http\Controllers\ResignationController;
 
 Route::get('/', function () {
-    return view('welcome');
+    // return view('welcome');
+    return view('auth.login');
 })->name('home');
 
 Route::get('dashboards', function () {
